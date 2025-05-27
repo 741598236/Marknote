@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  #root {
+    @apply h-full;
+  }
+
+  html,
+  body {
+    @apply h-full;
+    @apply select-none;
+    @apply bg-transparent;
+    @apply font-mono antialiased;
+    @apply overflow-hidden;
+    /* 优化亮色/暗色模式对比度 */
+    @apply text-gray-900 bg-[#f9f8f6]; /* 更柔和的暖白背景 */
+    /* 优化暗黑模式 */
+    @apply dark:text-gray-50 dark:bg-[#1a1816];
+    /* 统一过渡效果 */
+    @apply transition-all duration-300 ease-smooth;
+  }
+
+  /* 优化滚动条样式 */
+  ::-webkit-scrollbar {
+    @apply w-2.5 h-2.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-50/50 dark:bg-gray-900/50 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-400/80 dark:bg-gray-500/80 rounded-full;
+    @apply transition-all duration-200;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 dark:bg-gray-400;
+    @apply w-3;
+  }
+
+  /* 表单元素样式 */
+  input, textarea, select {
+    @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+    @apply border border-gray-300 dark:border-gray-600;
+    @apply rounded-lg;
+    @apply px-4 py-2.5;
+    @apply transition-all duration-300 ease-smooth;
+    @apply hover:border-gray-400 dark:hover:border-gray-500;
+    @apply focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500;
+  }
+
+  /* 链接样式 */
+  a {
+    @apply text-blue-600 dark:text-blue-400;
+    @apply hover:text-blue-800 dark:hover:text-blue-300;
+    @apply transition-colors duration-300 ease-smooth;
+    @apply hover:underline hover:underline-offset-4;
+  }
+}
+
+@layer components {
+  /* 笔记预览列表项 */
+  .note-preview {
+    @apply p-3 rounded-xl;
+    @apply transition-all duration-300 ease-smooth;
+    @apply hover:scale-[1.02] hover:shadow-md;
+    @apply active:scale-95;
+    @apply cursor-pointer;
+    @apply mb-2 last:mb-0; /* 优化行间距 */
+  }
+
+  /* 暗黑模式切换滑块 */
+  .theme-toggle {
+    @apply relative inline-flex h-6 w-11 items-center rounded-full;
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply transition-all duration-300 ease-smooth;
+    @apply hover:bg-gray-300 dark:hover:bg-gray-600;
+  }
+  
+  .theme-toggle__thumb {
+    @apply inline-block h-5 w-5 rounded-full bg-white shadow-lg;
+    @apply transform transition-transform duration-300;
+    @apply flex items-center justify-center;
+    @apply text-sm leading-none; /* 控制图标大小 */
+  }
+  
+  /* 激活状态 */
+  .theme-toggle--active {
+    @apply bg-blue-500;
+  }
+  
+  .theme-toggle--active .theme-toggle__thumb {
+    @apply translate-x-5;
+  }
+  
+  /* 顶部标题栏 */
+  .top-bar {
+    @apply h-12 bg-gray-100 dark:bg-gray-800;
+    @apply border-b border-gray-200 dark:border-gray-700;
+    @apply sticky top-0 z-50;
+  }
+  
+  /* 侧边栏 */
+  .sidebar {
+    @apply w-56 bg-white dark:bg-gray-800;
+    @apply border-r-4 border-red-500 dark:border-red-700;
+    @apply overflow-y-auto;
+    @apply p-4 space-y-3; /* 增加内边距和元素间距 */
+  }
+  
+  /* 内容区域 */
+  .content-area {
+    @apply flex-1 bg-white dark:bg-gray-800;
+    @apply border-4 border-blue-500 dark:border-blue-700;
+    @apply overflow-auto;
+    @apply p-6; /* 增加内边距 */
+  }
+}
