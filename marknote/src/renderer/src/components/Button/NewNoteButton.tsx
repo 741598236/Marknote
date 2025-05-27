@@ -1,10 +1,17 @@
 import { ActionButton, ActionButtonProps } from '@/components'
-import { JSX } from 'react'
+import { createEmptyNoteAtom } from '@/store'
+import { useSetAtom } from 'jotai'
 import { LuSignature } from 'react-icons/lu'
 
-export const NewNoteButton = ({ ...props }: ActionButtonProps): JSX.Element => {
+export const NewNoteButton = ({ ...props }: ActionButtonProps) => {
+  const createEmptyNote = useSetAtom(createEmptyNoteAtom)
+
+  const handleCreation = () => {
+    createEmptyNote()
+  }
+
   return (
-    <ActionButton {...props}>
+    <ActionButton onClick={handleCreation} {...props}>
       <LuSignature className="w-4 h-4 text-zinc-300" />
     </ActionButton>
   )

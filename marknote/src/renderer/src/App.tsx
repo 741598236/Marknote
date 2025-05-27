@@ -6,9 +6,10 @@ import {
   Sidebar,
   TopBar,
   NotePreviewList,
-  MarkdownEditor
+  MarkdownEditor,
+  FloatingNoteTitle
 } from '@/components'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 
 type ExtendedCSSProperties = React.CSSProperties & {
@@ -17,6 +18,12 @@ type ExtendedCSSProperties = React.CSSProperties & {
 
 const App = (): ReactElement => {
   const [darkMode, setDarkMode] = useState(false)
+
+  const contentContainerRef = useRef<HTMLDivElement>(null)
+
+  const resetScroll = () => {
+    contentContainerRef.current?.scrollTo(0, 0)
+  }
 
   return (
     <RootLayout className={darkMode ? 'dark' : ''}>
@@ -57,14 +64,10 @@ const App = (): ReactElement => {
           </div>
 
           {/* 居中的标题 - 添加响应式处理 */}
-          <div
-            className="flex justify-center w-full"
+          <FloatingNoteTitle
+            className="w-full"
             style={{ WebkitAppRegion: 'no-drag' } as ExtendedCSSProperties}
-          >
-            <h1 className="text-2xl font-extrabold tracking-tight truncate max-w-[80vw] px-2">
-              网站标题
-            </h1>
-          </div>
+          />
 
           {/* 右侧区域 - 确保拖拽覆盖 */}
           <div
@@ -80,10 +83,10 @@ const App = (): ReactElement => {
       <MainContent className="border-t border-gray-100 dark:border-gray-800">
         <Sidebar className="p-4 border-r border-gray-100 dark:border-gray-800">
           <ActionButtonsRow className="flex justify-between mb-4 gap-3 px-1" />
-          <NotePreviewList className="space-y-2" />
+          <NotePreviewList className="space-y-2" onSelect={resetScroll} />
         </Sidebar>
 
-        <Content className="p-6">
+        <Content ref={contentContainerRef} className="p-6">
           <MarkdownEditor />
         </Content>
       </MainContent>

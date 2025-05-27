@@ -23,7 +23,9 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
-    "@mdxeditor/editor": "^3.32.3"
+    "@mdxeditor/editor": "^3.32.3",
+    "jotai": "^2.12.5",
+    "react-hot-toast": "^2.5.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

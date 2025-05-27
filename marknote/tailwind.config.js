@@ -49,7 +49,7 @@ module.exports = {
 
         // 暗黑模式专用
         dark: {
-          primary: '#1a1d24',
+          primary: '#23272f',
           secondary: '#23272f',
           accent: '#2d323d',
           text: '#e0e3e7',
