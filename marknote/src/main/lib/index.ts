@@ -1,9 +1,11 @@
-import { appDirectoryName, fileEncoding } from '@shared/constants'
+import { isEmpty } from 'lodash'
+import { appDirectoryName, fileEncoding, welcomeNoteFilename } from '@shared/constants'
 import { app, dialog } from 'electron'
-import { readdir, stat } from 'fs/promises' // 使用 promises API
-import { ensureDir } from 'fs-extra'
-import { join } from 'path'
-import { GetNotes } from '@shared/types'
+import { readdir, stat, readFile, writeFile } from 'fs/promises' // 使用 promises API
+import { ensureDir, remove } from 'fs-extra'
+import path, { join } from 'path'
+import { CreateNote, DeleteNote, GetNotes, ReadNote, WriteNote } from '@shared/types'
+import welcomeNoteFile from '../../../resources/welcomeNote.md?asset'
 
 export const getRootDir = async (): Promise<string> => {
   const defaultPath = join(app.getPath('userData'), appDirectoryName)
@@ -33,6 +35,11 @@ export const getNotes: GetNotes = async () => {
   })
 
   const notes = notesFileNames.filter((fileName) => fileName.endsWith('.md'))
+  if (isEmpty(notes)) {
+    const content = await readFile(welcomeNoteFile, { encoding: fileEncoding })
+    await writeFile(`${rootDir}/${welcomeNoteFilename}`, content, { encoding: fileEncoding })
+    notes.push(welcomeNoteFilename)
+  }
   return Promise.all(notes.map(getNoteInfoFromFilename))
 }
 
@@ -50,4 +57,66 @@ export const getNoteInfoFromFilename = async (filename: string): Promise<NoteInf
 interface NoteInfo {
   title: string
   lastEditTime: number
+}
+
+export const readNote: ReadNote = async (filename) => {
+  const rootDir = await getRootDir() // 添加 await
+  return readFile(join(rootDir, `${filename}.md`), { encoding: fileEncoding })
+}
+
+export const writeNote: WriteNote = async (filename, content) => {
+  const rootDir = await getRootDir()
+
+  return writeFile(join(rootDir, `${filename}.md`), content, { encoding: fileEncoding })
+}
+
+export const createNote: CreateNote = async () => {
+  const rootDir = await getRootDir()
+  await ensureDir(rootDir)
+  const { filePath, canceled } = await dialog.showSaveDialog({
+    title: '创建新笔记',
+    defaultPath: `${rootDir}/Untitled.md`,
+    buttonLabel: `新建`,
+    properties: ['showOverwriteConfirmation'],
+    showsTagField: false,
+    filters: [{ name: 'Markdown', extensions: ['md'] }]
+  })
+
+  if (canceled || !filePath) {
+    return false
+  }
+
+  const { name: filename, dir: parentDir } = path.parse(filePath)
+
+  if (parentDir !== rootDir) {
+    await dialog.showMessageBox({
+      type: 'error',
+      title: '创建失败',
+      message: `所有文件必须创建在 ${rootDir}目录下.
+      不可以选择别的目录创建!`
+    })
+
+    return false
+  }
+  await writeFile(filePath, '')
+  return filename
+}
+
+export const deleteNote: DeleteNote = async (filename) => {
+  const rootDir = await getRootDir()
+  const { response } = await dialog.showMessageBox({
+    type: 'warning',
+    title: '删除笔记',
+    message: `确定要删除${filename}吗？`,
+    buttons: ['删除', '取消'], //0是删除，1是取消
+    defaultId: 1,
+    cancelId: 1
+  })
+
+  if (response === 1) {
+    return false
+  }
+
+  await remove(`${rootDir}/${filename}.md`)
+  return true
 }
