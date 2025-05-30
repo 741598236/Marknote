@@ -12,7 +12,7 @@ function createWindow(): void {
     height: 800, // 窗口高度
     show: false, // 初始不显示窗口
     autoHideMenuBar: true, // 自动隐藏菜单栏
-    ...(process.platform === 'linux' ? { icon } : {}), // Linux系统需要设置图标
+    icon,
     center: true,
     title: 'MarkNote',
     frame: false, // 禁用默认的窗口框架
@@ -94,11 +94,11 @@ app.whenReady().then(() => {
   ipcMain.on('window:toggle-fullscreen', (event) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return
-    
+
     window.isMaximized() ? window.unmaximize() : window.maximize()
-    window.webContents.send(window.isMaximized() 
-      ? 'window:enter-fullscreen' 
-      : 'window:leave-fullscreen')
+    window.webContents.send(
+      window.isMaximized() ? 'window:enter-fullscreen' : 'window:leave-fullscreen'
+    )
   })
 
   ipcMain.handle('window:isFullscreen', (event) => {

@@ -31,7 +31,8 @@ export const NotePreview = ({
           'shadow-blue-200/40 dark:shadow-blue-900/20',
           'aria-pressed:bg-blue-200/50 dark:aria-pressed:bg-blue-900/60'
         ],
-        !isActive && 'hover:bg-gray-50/80 dark:hover:bg-gray-800/70 hover:border-gray-300/50 dark:hover:border-gray-500/50',
+        !isActive &&
+          'hover:bg-gray-50/80 dark:hover:bg-gray-800/70 hover:border-gray-300/50 dark:hover:border-gray-500/50',
         className
       )}
       {...props}

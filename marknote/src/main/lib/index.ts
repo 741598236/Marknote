@@ -7,20 +7,22 @@ import path, { join } from 'path'
 import { CreateNote, DeleteNote, GetNotes, ReadNote, WriteNote } from '@shared/types'
 import welcomeNoteFile from '../../../resources/welcomeNote.md?asset'
 
+let userSelectedPath: string | null = null
 export const getRootDir = async (): Promise<string> => {
   const defaultPath = join(app.getPath('userData'), appDirectoryName)
 
-  // 生产环境下让用户选择存储位置
   if (import.meta.env.PROD) {
-    const { canceled, filePaths } = await dialog.showOpenDialog({
-      title: '选择存储目录',
-      defaultPath: defaultPath,
-      properties: ['openDirectory', 'createDirectory']
-    })
-    return canceled ? defaultPath : join(filePaths[0], appDirectoryName)
+    if (!userSelectedPath) {
+      const { canceled, filePaths } = await dialog.showOpenDialog({
+        title: '选择存储目录',
+        defaultPath: defaultPath,
+        properties: ['openDirectory', 'createDirectory']
+      })
+      userSelectedPath = canceled ? defaultPath : join(filePaths[0], appDirectoryName)
+    }
+    return userSelectedPath
   }
 
-  // 开发环境下用当前目录（方便调试）
   return join(process.cwd(), appDirectoryName)
 }
 
