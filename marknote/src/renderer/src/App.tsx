@@ -7,7 +7,10 @@ import {
   TopBar,
   NotePreviewList,
   MarkdownEditor,
-  FloatingNoteTitle
+  FloatingNoteTitle,
+  MinimizeButton,
+  MaximizeButton,
+  CloseButton
 } from '@/components'
 import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
@@ -69,12 +72,18 @@ const App = (): ReactElement => {
             style={{ WebkitAppRegion: 'no-drag' } as ExtendedCSSProperties}
           />
 
-          {/* 右侧区域 - 确保拖拽覆盖 */}
+          {/* 右侧区域 - 窗口控制按钮 */}
           <div
-            className="flex justify-end min-w-[150px] h-full"
-            style={{ WebkitAppRegion: 'drag' } as ExtendedCSSProperties}
+            className="flex justify-end min-w-[150px] h-full items-center gap-1 px-2"
+            style={{ WebkitAppRegion: 'no-drag' } as ExtendedCSSProperties}
           >
-            <div className="w-full h-full" />
+            {window.context.platform !== 'darwin' && (
+              <>
+                <MinimizeButton />
+                <MaximizeButton />
+                <CloseButton />
+              </>
+            )}
           </div>
         </div>
       </TopBar>

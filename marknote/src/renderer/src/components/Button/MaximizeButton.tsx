@@ -1,51 +1,55 @@
 import { ActionButton, ActionButtonProps } from '@/components'
-
-import { LuMaximize2, LuMinimize2 } from 'react-icons/lu'
+import { LuExpand, LuShrink } from 'react-icons/lu'
 import { useEffect, useState } from 'react'
 
 export const MaximizeButton = ({ ...props }: ActionButtonProps) => {
-  const [isMaximized, setIsMaximized] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
     let isMounted = true
 
-    const updateMaximizedState = async () => {
+    const updateFullscreenState = async () => {
       try {
-        const maximized = await window.Electron.ipcRenderer.invoke('window:isMaximized')
-        if (isMounted) setIsMaximized(maximized)
+        const fullscreen = await window.context.ipcRenderer.invoke('window:isFullscreen')
+        if (isMounted) setIsFullscreen(fullscreen)
       } catch (error) {
-        console.error('Failed to get window maximize state:', error)
+        console.error('Failed to get window fullscreen state:', error)
         // 设置默认值
-        if (isMounted) setIsMaximized(false)
+        if (isMounted) setIsFullscreen(false)
       }
     }
 
-    updateMaximizedState()
+    updateFullscreenState()
 
     // 监听窗口状态变化
-    const onMaximized = () => isMounted && setIsMaximized(true)
-    const onUnmaximized = () => isMounted && setIsMaximized(false)
+    const onEnterFullscreen = () => isMounted && setIsFullscreen(true)
+    const onLeaveFullscreen = () => isMounted && setIsFullscreen(false)
 
-    window.electron.ipcRenderer.on('window:maximized', onMaximized)
-    window.electron.ipcRenderer.on('window:unmaximized', onUnmaximized)
+    window.context.ipcRenderer.on('window:enter-fullscreen', onEnterFullscreen)
+    window.context.ipcRenderer.on('window:leave-fullscreen', onLeaveFullscreen)
 
     return () => {
       isMounted = false
-      window.electron.ipcRenderer.removeAllListeners('window:maximized', onMaximized)
-      window.electron.ipcRenderer.removeAllListeners('window:unmaximized', onUnmaximized)
+      // removeAllListeners 方法只需要事件名作为参数，移除该事件的所有监听器
+      window.context.ipcRenderer.removeAllListeners('window:enter-fullscreen')
+      window.context.ipcRenderer.removeAllListeners('window:leave-fullscreen')
     }
   }, [])
 
-  const handleMaximize = () => {
-    window.electron.ipcRenderer.send('window:maximize')
+  const handleToggleFullscreen = () => {
+    window.context.ipcRenderer.send('window:toggle-fullscreen')
   }
 
   return (
-    <ActionButton onClick={handleMaximize} {...props}>
-      {isMaximized ? (
-        <LuMinimize2 className="w-4 h-4 text-zinc-300" />
+    <ActionButton 
+      onClick={handleToggleFullscreen} 
+      {...props}
+      className="transition-all duration-500 ease-in-out"
+    >
+      {isFullscreen ? (
+        <LuShrink className="w-4 h-4 text-zinc-300" />
       ) : (
-        <LuMaximize2 className="w-4 h-4 text-zinc-300" />
+        <LuExpand className="w-4 h-4 text-zinc-300" />
       )}
     </ActionButton>
   )

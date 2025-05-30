@@ -9,11 +9,18 @@ if (!process.contextIsolated) {
 try {
   contextBridge.exposeInMainWorld('context', {
     locale: navigator.language,
+    platform: process.platform,
     getNotes: (...args: Parameters<GetNotes>) => ipcRenderer.invoke('getNotes', ...args),
     readNote: (...args: Parameters<ReadNote>) => ipcRenderer.invoke('readNote', ...args),
     writeNote: (...args: Parameters<WriteNote>) => ipcRenderer.invoke('writeNote', ...args),
     createNote: (...args: Parameters<CreateNote>) => ipcRenderer.invoke('createNote', ...args),
-    deleteNote: (...args: Parameters<DeleteNote>) => ipcRenderer.invoke('deleteNote', ...args)
+    deleteNote: (...args: Parameters<DeleteNote>) => ipcRenderer.invoke('deleteNote', ...args),
+    ipcRenderer: {
+      invoke: ipcRenderer.invoke.bind(ipcRenderer),
+      send: ipcRenderer.send.bind(ipcRenderer),
+      on: ipcRenderer.on.bind(ipcRenderer),
+      removeAllListeners: ipcRenderer.removeAllListeners.bind(ipcRenderer)
+    }
   })
 } catch (error) {
   console.error('Failed to expose APIs to the renderer:', error)

@@ -7,11 +7,18 @@ declare global {
     //electron: ElectronAPI
     context: {
       locale: string
+      platform: string
       getNotes: GetNotes
       readNote: ReadNote
       writeNote: WriteNote
       createNote: CreateNote
       deleteNote: DeleteNote
+      ipcRenderer: {
+        invoke: (channel: string, ...args: any[]) => Promise<any>
+        send: (channel: string, ...args: any[]) => void
+        on: (channel: string, listener: (...args: any[]) => void) => void
+        removeAllListeners: (channel: string) => void
+      }
     }
   }
 }

@@ -17,7 +17,7 @@ function createWindow(): void {
     title: 'MarkNote',
     frame: false, // 禁用默认的窗口框架
     titleBarStyle: 'hidden', // 隐藏标题栏
-    trafficLightPosition: { x: 15, y: 10 },
+    trafficLightPosition: process.platform === 'darwin' ? { x: 15, y: 10 } : undefined, // 仅Mac设置traffic light位置
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'), // 预加载脚本路径
       sandbox: true, // 沙箱模式
@@ -64,6 +64,49 @@ app.whenReady().then(() => {
   ipcMain.handle('writeNote', (_, ...args: Parameters<WriteNote>) => writeNote(...args))
   ipcMain.handle('createNote', (_, ...args: Parameters<CreateNote>) => createNote(...args))
   ipcMain.handle('deleteNote', (_, ...args: Parameters<DeleteNote>) => deleteNote(...args))
+
+  // Window control handlers
+  ipcMain.on('window:minimize', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    window?.minimize()
+  })
+
+  ipcMain.on('window:maximize', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (window?.isMaximized()) {
+      window.unmaximize()
+    } else {
+      window?.maximize()
+    }
+  })
+
+  ipcMain.on('window:close', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    window?.close()
+  })
+
+  ipcMain.handle('window:isMaximized', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    return window?.isMaximized()
+  })
+
+  // Fullscreen handlers
+  ipcMain.on('window:toggle-fullscreen', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (window?.isFullScreen()) {
+      window.setFullScreen(false)
+      window.webContents.send('window:leave-fullscreen')
+    } else {
+      window?.setFullScreen(true)
+      window.webContents.send('window:enter-fullscreen')
+    }
+  })
+
+  ipcMain.handle('window:isFullscreen', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    return window?.isFullScreen()
+  })
+
   createWindow()
 
   app.on('activate', function () {
