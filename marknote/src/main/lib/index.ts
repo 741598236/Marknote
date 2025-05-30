@@ -18,12 +18,12 @@ export const getRootDir = async (): Promise<string> => {
         defaultPath: defaultPath,
         properties: ['openDirectory', 'createDirectory']
       })
-      userSelectedPath = canceled ? defaultPath : join(filePaths[0], appDirectoryName)
+      userSelectedPath = canceled ? defaultPath : filePaths[0]
     }
     return userSelectedPath
   }
 
-  return join(process.cwd(), appDirectoryName)
+  return process.cwd()
 }
 
 export const getNotes: GetNotes = async () => {
@@ -39,7 +39,7 @@ export const getNotes: GetNotes = async () => {
   const notes = notesFileNames.filter((fileName) => fileName.endsWith('.md'))
   if (isEmpty(notes)) {
     const content = await readFile(welcomeNoteFile, { encoding: fileEncoding })
-    await writeFile(`${rootDir}/${welcomeNoteFilename}`, content, { encoding: fileEncoding })
+    await writeFile(join(rootDir, welcomeNoteFilename), content, { encoding: fileEncoding })
     notes.push(welcomeNoteFilename)
   }
   return Promise.all(notes.map(getNoteInfoFromFilename))
@@ -94,8 +94,7 @@ export const createNote: CreateNote = async () => {
     await dialog.showMessageBox({
       type: 'error',
       title: '创建失败',
-      message: `所有文件必须创建在 ${rootDir}目录下.
-      不可以选择别的目录创建!`
+      message: `所有笔记文件将保存在：${rootDir}`
     })
 
     return false

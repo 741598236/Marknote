@@ -1,6 +1,6 @@
 {
   "name": "marknote",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "跨平台Markdown笔记应用，基于Electron + React + TypeScript构建，集成Vite快速开发。支持实时预览、本地安全存储、昼夜主题切换，配备TailwindCSS美化界面和定制化无边框窗口。",
   "main": "./out/main/index.js",
   "author": "路畅",
