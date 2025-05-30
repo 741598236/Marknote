@@ -37,6 +37,7 @@
     "@codemirror/lang-yaml": "^6.1.2",
     "@codemirror/language": "^6.11.0",
     "@codemirror/theme-one-dark": "^6.1.2",
+    "@ddietr/codemirror-themes": "^1.5.1",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "@mdxeditor/editor": "^3.33.0",

@@ -640,6 +640,16 @@
     react-devtools-inline "4.4.0"
     react-is "^17.0.2"
 
+"@ddietr/codemirror-themes@^1.5.1":
+  version "1.5.1"
+  resolved "https://registry.npmmirror.com/@ddietr/codemirror-themes/-/codemirror-themes-1.5.1.tgz#562f213f91a5ae9e99dd72d742aace4ec6292863"
+  integrity sha512-Io0zoWp0PSbDIsnBQOwaf2AIPAk/cnKI2Yc0bS8LYFQRIw5piruxj7ZlSELUCNey+g8iyRDF3j8Ef67ID7QuEA==
+  dependencies:
+    "@codemirror/language" "^6.0.0"
+    "@codemirror/state" "^6.0.0"
+    "@codemirror/view" "^6.0.0"
+    "@lezer/highlight" "^1.0.0"
+
 "@develar/schema-utils@~2.6.5":
   version "2.6.5"
   resolved "https://registry.npmmirror.com/@develar/schema-utils/-/schema-utils-2.6.5.tgz"

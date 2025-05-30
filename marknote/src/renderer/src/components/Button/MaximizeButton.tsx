@@ -36,15 +36,24 @@ export const MaximizeButton = ({ ...props }: ActionButtonProps) => {
     }
   }, [])
 
+  const [isMaximizing, setIsMaximizing] = useState(false)
+
   const handleToggleFullscreen = () => {
+    setIsMaximizing(true)
     window.context.ipcRenderer.send('window:toggle-fullscreen')
+
+    // 延迟200ms更新图标避免闪烁
+    setTimeout(() => {
+      setIsMaximizing(false)
+    }, 200)
   }
 
   return (
-    <ActionButton 
-      onClick={handleToggleFullscreen} 
+    <ActionButton
+      onClick={handleToggleFullscreen}
       {...props}
-      className="transition-all duration-500 ease-in-out"
+      className="transition-all duration-500 ease-in-out active:scale-90"
+      disabled={isMaximizing}
     >
       {isFullscreen ? (
         <LuShrink className="w-4 h-4 text-zinc-300" />

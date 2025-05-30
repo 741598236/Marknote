@@ -41,6 +41,9 @@ import { sql } from '@codemirror/lang-sql'
 import { json } from '@codemirror/lang-json'
 import { yaml } from '@codemirror/lang-yaml'
 import { markdown } from '@codemirror/lang-markdown'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { solarizedLight } from '@ddietr/codemirror-themes/solarized-light'
+import React from 'react'
 
 const SUPPORTED_LANGUAGES = {
   text: 'Plain Text',
@@ -60,8 +63,70 @@ const SUPPORTED_LANGUAGES = {
   markdown: 'Markdown'
 }
 
-export const MarkdownEditor = () => {
+export const MarkdownEditor = ({ darkMode }: { darkMode: boolean }) => {
   const { editorRef, selectedNote, handleAutoSaving, handleBlur } = useMarkdownEditor()
+
+  // 使用 useMemo 优化插件创建，依赖 darkMode
+  const plugins = React.useMemo(
+    () => [
+      headingsPlugin(),
+      listsPlugin(),
+      quotePlugin(),
+      markdownShortcutPlugin(),
+      linkPlugin(),
+      linkDialogPlugin(),
+      imagePlugin(),
+      tablePlugin(),
+      thematicBreakPlugin(),
+      codeBlockPlugin({
+        defaultCodeBlockLanguage: 'text',
+        codeBlockEditorDescriptors: []
+      }),
+      codeMirrorPlugin({
+        codeBlockLanguages: SUPPORTED_LANGUAGES,
+        codeMirrorExtensions: [
+          javascript(),
+          css(),
+          html(),
+          python(),
+          php(),
+          rust(),
+          cpp(),
+          sql(),
+          json(),
+          yaml(),
+          markdown(),
+          darkMode ? oneDark : solarizedLight
+        ]
+      }),
+      toolbarPlugin({
+        toolbarContents: () => (
+          <>
+            <UndoRedo />
+            <Separator />
+            <BoldItalicUnderlineToggles />
+            <CodeToggle />
+            <Separator />
+            <ListsToggle />
+            <Separator />
+            <BlockTypeSelect />
+            <Separator />
+            <CreateLink />
+            <InsertImage />
+            <InsertTable />
+            <InsertThematicBreak />
+            <InsertCodeBlock />
+          </>
+        ),
+        toolbarClassName:
+          '!bg-light-primary !border-b !border-light-border dark:!bg-dark-primary dark:!border-b dark:!border-dark-border shadow-sm px-3 py-1.5 transition-colors duration-300 ease-smooth sticky top-0 z-10'
+      }),
+      directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
+      frontmatterPlugin(),
+      diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: '' })
+    ],
+    [darkMode]
+  )
 
   if (!selectedNote) {
     return (
@@ -75,66 +140,11 @@ export const MarkdownEditor = () => {
     <div className="relative h-full flex flex-col">
       <MDXEditor
         ref={editorRef}
-        key={selectedNote.title}
+        key={`${selectedNote.title}-${darkMode}`} // 添加 darkMode 到 key 强制重新渲染
         markdown={selectedNote.content}
         onChange={handleAutoSaving}
         onBlur={handleBlur}
-        plugins={[
-          headingsPlugin(),
-          listsPlugin(),
-          quotePlugin(),
-          markdownShortcutPlugin(),
-          linkPlugin(),
-          linkDialogPlugin(),
-          imagePlugin(),
-          tablePlugin(),
-          thematicBreakPlugin(),
-          codeBlockPlugin({
-            defaultCodeBlockLanguage: 'text',
-            codeBlockEditorDescriptors: []
-          }),
-          codeMirrorPlugin({
-            codeBlockLanguages: SUPPORTED_LANGUAGES,
-            codeMirrorExtensions: [
-              javascript(),
-              css(),
-              html(),
-              python(),
-              php(),
-              rust(),
-              cpp(),
-              sql(),
-              json(),
-              yaml(),
-              markdown()
-            ]
-          }),
-          toolbarPlugin({
-            toolbarContents: () => (
-              <>
-                <UndoRedo />
-                <Separator />
-                <BoldItalicUnderlineToggles />
-                <CodeToggle />
-                <Separator />
-                <ListsToggle />
-                <Separator />
-                <BlockTypeSelect />
-                <Separator />
-                <CreateLink />
-                <InsertImage />
-                <InsertTable />
-                <InsertThematicBreak />
-                <InsertCodeBlock />
-              </>
-            ),
-            toolbarClassName:
-              '!bg-light-primary !border-b !border-light-border dark:!bg-dark-primary dark:!border-b dark:!border-dark-border shadow-sm px-3 py-1.5 transition-colors duration-300 ease-smooth sticky top-0 z-10'
-          }),
-          directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
-          frontmatterPlugin(),
-          diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: '' })
-        ]}
+        plugins={plugins}
         contentEditableClassName="
           outline-none max-w-none 
           px-4 py-4 sm:px-6 md:px-8
@@ -183,88 +193,9 @@ export const MarkdownEditor = () => {
           [&_code]:font-mono [&_code]:text-[0.9em]
           [&_code]:before:content-[''] [&_code]:after:content-['']
           
-          [&_pre]:bg-gray-900 [&_pre]:shadow-xl
-          [&_pre]:border [&_pre]:border-gray-800/80
-          dark:[&_pre]:bg-[#0d1117] dark:[&_pre]:border-gray-700/60
-          [&_pre]:text-gray-100 dark:[&_pre]:text-gray-200
-          [&_pre]:p-5 [&_pre]:rounded-xl
-          [&_pre]:overflow-x-auto
-          [&_pre]:leading-relaxed
-          [&_pre]:font-mono [&_pre]:text-[0.92em]
-          [&_pre]:bg-gradient-to-br [&_pre]:from-gray-900 [&_pre]:via-gray-800 [&_pre]:to-gray-900
-          dark:[&_pre]:bg-gradient-to-br dark:[&_pre]:from-[#0d1117] dark:[&_pre]:via-[#161b22] dark:[&_pre]:to-[#0d1117]
-          [&_pre]:shadow-lg [&_pre]:ring-1 [&_pre]:ring-gray-700/30
-          dark:[&_pre]:ring-gray-600/30
-          [&_pre]:transition-all [&_pre]:duration-300
+          /* 简化 pre 样式以避免覆盖 CodeMirror 主题 */
+          [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:overflow-x-auto
           [&_pre_code]:bg-transparent
-          dark:[&_pre_code]:bg-transparent
-          [&_pre_code]:before:content-[attr(data-line)]
-          [&_pre_code]:before:text-gray-500/70
-          dark:[&_pre_code]:before:text-gray-500/50
-          [&_pre_code]:before:mr-3
-          [&_pre_code]:before:inline-block
-          [&_pre_code]:before:w-4
-          [&_pre_code]:before:text-right
-          
-          [&_pre]::-webkit-scrollbar {
-            height: 8px;
-            background-color: transparent;
-          }
-          [&_pre]::-webkit-scrollbar-thumb {
-            background-color: rgba(156, 163, 175, 0.3);
-            border-radius: 4px;
-          }
-          dark:[&_pre]::-webkit-scrollbar-thumb {
-            background-color: rgba(75, 85, 99, 0.4);
-          }
-          
-          [&_.token.comment],
-          [&_.token.prolog],
-          [&_.token.doctype],
-          [&_.token.cdata] {
-            color: #6b7280;
-          }
-          [&_.token.punctuation] {
-            color: #d1d5db;
-          }
-          [&_.token.property],
-          [&_.token.tag],
-          [&_.token.boolean],
-          [&_.token.number],
-          [&_.token.constant],
-          [&_.token.symbol],
-          [&_.token.deleted] {
-            color: #f472b6;
-          }
-          [&_.token.selector],
-          [&_.token.attr-name],
-          [&_.token.string],
-          [&_.token.char],
-          [&_.token.builtin],
-          [&_.token.inserted] {
-            color: #93c5fd;
-          }
-          [&_.token.operator],
-          [&_.token.entity],
-          [&_.token.url],
-          [&_.language-css_.token.string],
-          [&_.style_.token.string] {
-            color: #93c5fd;
-          }
-          [&_.token.atrule],
-          [&_.token.attr-value],
-          [&_.token.keyword] {
-            color: #93c5fd;
-          }
-          [&_.token.function],
-          [&_.token.class-name] {
-            color: #fbbf24;
-          }
-          [&_.token.regex],
-          [&_.token.important],
-          [&_.token.variable] {
-            color: #93c5fd;
-          }
           
           [&_table]:my-6
           [&_th]:bg-gray-100 dark:[&_th]:bg-gray-800/50

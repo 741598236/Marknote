@@ -93,13 +93,12 @@ app.whenReady().then(() => {
   // Fullscreen handlers
   ipcMain.on('window:toggle-fullscreen', (event) => {
     const window = BrowserWindow.fromWebContents(event.sender)
-    if (window?.isFullScreen()) {
-      window.setFullScreen(false)
-      window.webContents.send('window:leave-fullscreen')
-    } else {
-      window?.setFullScreen(true)
-      window.webContents.send('window:enter-fullscreen')
-    }
+    if (!window) return
+    
+    window.isMaximized() ? window.unmaximize() : window.maximize()
+    window.webContents.send(window.isMaximized() 
+      ? 'window:enter-fullscreen' 
+      : 'window:leave-fullscreen')
   })
 
   ipcMain.handle('window:isFullscreen', (event) => {

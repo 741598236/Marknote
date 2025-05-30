@@ -96,7 +96,7 @@ const App = (): ReactElement => {
         </Sidebar>
 
         <Content ref={contentContainerRef} className="p-6">
-          <MarkdownEditor />
+          <MarkdownEditor darkMode={darkMode} />
         </Content>
       </MainContent>
     </RootLayout>
