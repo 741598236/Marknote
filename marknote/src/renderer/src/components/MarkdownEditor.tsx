@@ -35,7 +35,7 @@ export const MarkdownEditor = () => {
   const { selectedNote } = useMarkdownEditor()
 
   if (!selectedNote) return null
-
+  
   return (
     <div className="relative h-full flex flex-col">
       <MDXEditor
