@@ -1,37 +1,88 @@
-# notemark
+# MarkNote
 
-#### 介绍
-学习大佬项目：https://github.com/CodeWithGionatha-Labs/NoteMark
+![MarkNote Logo](/marknote/build/icon.png)  
+*跨平台Markdown笔记应用*  
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-#### 软件架构
-软件架构说明
+## ✨ 功能特性
 
+- **实时Markdown预览**：即时呈现排版效果
+- **简洁文件管理**：轻松创建/删除/搜索笔记
+- **自动保存**：所有更改自动保存，无需手动操作
+- **跨平台支持**：Windows/macOS/Linux全平台兼容
+- **主题切换**：内置昼夜主题，保护您的眼睛
+- **代码高亮**：支持多种编程语言语法高亮
 
-#### 安装教程
+## 🛠️ 技术栈
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+- **前端框架**: React + TypeScript
+- **构建工具**: Vite
+- **UI框架**: TailwindCSS
+- **编辑器**: CodeMirror
+- **打包工具**: Electron + electron-builder
 
-#### 使用说明
+## 🚀 快速开始
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+### 开发环境
 
-#### 参与贡献
+```bash
+# 克隆项目
+git clone https://gitee.com/your-repo/marknote.git
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+# 安装依赖
+npm install
 
+# 启动开发模式
+npm run dev
+```
 
-#### 特技
+### 生产构建
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+```bash
+# Windows
+npm run build:win
+
+# macOS
+npm run build:mac
+
+# Linux
+npm run build:linux
+```
+
+## 📖 使用指南
+
+1. **创建笔记**：
+   - 点击侧边栏"+"按钮创建新笔记
+   - 未提供标题时会弹出对话框输入标题
+   - 提供标题时会直接创建
+2. **编辑笔记**：
+   - 所见即所得编辑模式
+   - 支持Markdown语法和工具栏快捷操作
+3. **标题操作**：
+   - 双击标题可编辑
+   - 按Enter或失去焦点保存
+   - 清空标题会删除笔记
+4. **删除笔记**：
+   - 通过删除按钮操作
+   - 会弹出确认对话框
+5. **自动保存**：所有更改会自动保存
+6. **排序**：笔记按最后编辑时间降序排列
+
+## 📄 Markdown支持
+
+支持标准Markdown语法，包括：
+
+- 标题、段落、列表
+- 代码块和行内代码
+- 表格、引用、分割线
+- 链接和图片
+
+完整语法参考见[Welcome.md](./marknote/resources/welcomeNote.md)
+
+## 🤝 贡献
+
+欢迎提交Issue和PR！
+
+## 📜 许可证
+
+MIT © 2025 路畅

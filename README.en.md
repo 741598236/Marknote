@@ -1,36 +1,88 @@
-# notemark
+# MarkNote
 
-#### Description
-学习大佬项目：https://github.com/CodeWithGionatha-Labs/NoteMark
+![MarkNote Logo](/marknote/build/icon.png)  
+*Cross-platform Markdown Note App*  
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-#### Software Architecture
-Software architecture description
+## ✨ Features
 
-#### Installation
+- **Real-time Markdown Preview**: Edit on the left, see formatted result on the right
+- **Simple File Management**: Easily create/delete/search notes
+- **Auto Save**: All changes are saved automatically
+- **Cross-platform**: Windows/macOS/Linux support
+- **Theme Switching**: Built-in light/dark themes
+- **Syntax Highlighting**: Supports multiple programming languages
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 🛠️ Tech Stack
 
-#### Instructions
+- **Frontend**: React + TypeScript
+- **Build Tool**: Vite
+- **UI Framework**: TailwindCSS
+- **Editor**: CodeMirror
+- **Packaging**: Electron + electron-builder
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 🚀 Quick Start
 
-#### Contribution
+### Development
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+```bash
+# Clone repo
+git clone https://github.com/your-repo/marknote.git
 
+# Install dependencies
+npm install
 
-#### Gitee Feature
+# Start dev server
+npm run dev
+```
 
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+### Production Build
+
+```bash
+# Windows
+npm run build:win
+
+# macOS
+npm run build:mac
+
+# Linux
+npm run build:linux
+```
+
+## 📖 User Guide
+
+1. **Create Note**:
+   - Click "+" button to create new note
+   - A dialog will pop up for title if not provided
+   - Will create directly if title is provided
+2. **Edit Note**:
+   - WYSIWYG editing mode
+   - Supports Markdown syntax and toolbar shortcuts
+3. **Title Operations**:
+   - Double click title to edit
+   - Press Enter or lose focus to save
+   - Empty title will delete the note
+4. **Delete Note**:
+   - Through delete button
+   - With confirmation dialog
+5. **Auto Save**: All changes are saved automatically
+6. **Sorting**: Notes sorted by last edit time in descending order
+
+## 📄 Markdown Support
+
+Supports standard Markdown syntax including:
+
+- Headings, paragraphs, lists
+- Code blocks and inline code
+- Tables, blockquotes, horizontal rules
+- Links and images
+
+Full syntax reference see [Welcome.md](./Welcome.md)
+
+## 🤝 Contributing
+
+Issues and PRs are welcome!
+
+## 📜 License
+
+MIT © 2023 Lu Chang
