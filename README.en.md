@@ -87,4 +87,4 @@ Issues and PRs are welcome!
 
 ## 📜 License
 
-MIT © 2023 Lu Chang
+MIT © 2025 Lu Chang
