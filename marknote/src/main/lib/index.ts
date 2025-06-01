@@ -2,9 +2,9 @@ import { isEmpty } from 'lodash'
 import { appDirectoryName, fileEncoding, welcomeNoteFilename } from '@shared/constants'
 import { app, dialog } from 'electron'
 import { readdir, stat, readFile, writeFile } from 'fs/promises' // 使用 promises API
-import { ensureDir, remove } from 'fs-extra'
+import { ensureDir, remove, rename } from 'fs-extra'
 import path, { join } from 'path'
-import { CreateNote, DeleteNote, GetNotes, ReadNote, WriteNote } from '@shared/types'
+import { CreateNote, DeleteNote, GetNotes, ReadNote, WriteNote, RenameNote } from '@shared/types'
 import welcomeNoteFile from '../../../resources/welcomeNote.md?asset'
 
 let userSelectedPath: string | null = null
@@ -72,9 +72,16 @@ export const writeNote: WriteNote = async (filename, content) => {
   return writeFile(join(rootDir, `${filename}.md`), content, { encoding: fileEncoding })
 }
 
-export const createNote: CreateNote = async () => {
+export const createNote: CreateNote = async (title?: string) => {
   const rootDir = await getRootDir()
   await ensureDir(rootDir)
+
+  if (title) {
+    const filePath = join(rootDir, `${title}.md`)
+    await writeFile(filePath, '')
+    return title
+  }
+
   const { filePath, canceled } = await dialog.showSaveDialog({
     title: '创建新笔记',
     defaultPath: `${rootDir}/Untitled.md`,
@@ -100,7 +107,21 @@ export const createNote: CreateNote = async () => {
     return false
   }
   await writeFile(filePath, '')
-  return filename
+  return filename.replace(/\.md$/, '')
+}
+
+export const renameNote: RenameNote = async (oldFilename, newFilename) => {
+  const rootDir = await getRootDir()
+  const oldPath = join(rootDir, `${oldFilename}.md`)
+  const newPath = join(rootDir, `${newFilename}.md`)
+
+  try {
+    await rename(oldPath, newPath)
+    return true
+  } catch (error) {
+    console.error('重命名笔记失败:', error)
+    return false
+  }
 }
 
 export const deleteNote: DeleteNote = async (filename) => {

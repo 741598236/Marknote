@@ -40,13 +40,30 @@ export const selectedNoteAtom = unwrap(
     }
 )
 
-export const createEmptyNoteAtom = atom(null, async (get, set) => {
+export const createEmptyNoteAtom = atom(null, async (get, set, noteTitle?: string) => {
   const notes = get(notesAtom)
 
   if (!notes) return
 
-  const title = await window.context.createNote()
+  if (!noteTitle) {
+    const title = await window.context.createNote()
+    if (!title) return
 
+    const newNote: NoteInfo = {
+      title,
+      lastEditTime: Date.now()
+    }
+
+    const updatedNotes = [newNote, ...notes.filter((note) => note.title !== newNote.title)]
+    set(
+      notesAtom,
+      updatedNotes.sort((a, b) => b.lastEditTime - a.lastEditTime)
+    )
+    set(selectedNoteIndexAtom, 0)
+    return
+  }
+
+  const title = await window.context.createNote(noteTitle)
   if (!title) return
 
   const newNote: NoteInfo = {
@@ -54,9 +71,35 @@ export const createEmptyNoteAtom = atom(null, async (get, set) => {
     lastEditTime: Date.now()
   }
 
-  set(notesAtom, [newNote, ...notes.filter((note) => note.title !== newNote.title)])
-
+  const updatedNotes = [newNote, ...notes.filter((note) => note.title !== newNote.title)]
+  set(
+    notesAtom,
+    updatedNotes.sort((a, b) => b.lastEditTime - a.lastEditTime)
+  )
   set(selectedNoteIndexAtom, 0)
+})
+
+export const renameNoteAtom = atom(null, async (get, set, newTitle: string) => {
+  const notes = get(notesAtom)
+  const selectedNote = get(selectedNoteAtom)
+
+  if (!selectedNote || !notes) return
+
+  const isRenamed = await window.context.renameNote(selectedNote.title, newTitle)
+  if (!isRenamed) return
+
+  set(
+    notesAtom,
+    notes.map((note) => {
+      if (note.title === selectedNote.title) {
+        return {
+          ...note,
+          title: newTitle
+        }
+      }
+      return note
+    })
+  )
 })
 
 export const deleteNoteAtom = atom(null, async (get, set) => {
@@ -68,11 +111,11 @@ export const deleteNoteAtom = atom(null, async (get, set) => {
   const isDelete = await window.context.deleteNote(selectedNote.title)
   if (!isDelete) return
 
+  const updatedNotes = notes.filter((note) => note.title !== selectedNote.title)
   set(
     notesAtom,
-    notes.filter((note) => note.title !== selectedNote.title)
+    updatedNotes.sort((a, b) => b.lastEditTime - a.lastEditTime)
   )
-
   set(selectedNoteIndexAtom, null)
 })
 
