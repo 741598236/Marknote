@@ -1,8 +1,10 @@
 # MarkNote
 
 ![MarkNote Logo](/marknote/build/icon.png)  
-*Cross-platform Markdown Note App*  
+_Cross-platform Markdown Note App_  
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[中文文档](./README.md) | [English Documentation](#)
 
 ## ✨ Features
 
@@ -27,26 +29,26 @@
 
 ```bash
 # Clone repo
-git clone https://github.com/your-repo/marknote.git
+git clone https://gitee.com/your-repo/marknote.git
 
 # Install dependencies
-npm install
+yarn install
 
 # Start dev server
-npm run dev
+yarn dev
 ```
 
 ### Production Build
 
 ```bash
 # Windows
-npm run build:win
+yarn build:win
 
 # macOS
-npm run build:mac
+yarn build:mac
 
 # Linux
-npm run build:linux
+yarn build:linux
 ```
 
 ## 📖 User Guide
