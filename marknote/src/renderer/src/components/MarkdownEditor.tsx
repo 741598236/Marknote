@@ -43,7 +43,7 @@ import { yaml } from '@codemirror/lang-yaml'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { solarizedLight } from '@ddietr/codemirror-themes/solarized-light'
-import React from 'react'
+import React, { useCallback, useEffect } from 'react'
 
 const SUPPORTED_LANGUAGES = {
   text: 'Plain Text',
@@ -243,6 +243,8 @@ export const MarkdownEditor = ({ darkMode }: { darkMode: boolean }): React.React
     [darkMode]
   )
 
+
+
   if (!selectedNote) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -309,42 +311,98 @@ export const MarkdownEditor = ({ darkMode }: { darkMode: boolean }): React.React
           [&_code]:font-mono [&_code]:text-[0.9em]
           [&_code]:before:content-[''] [&_code]:after:content-['']
           
-          /* 简化 pre 样式以避免覆盖 CodeMirror 主题 */
-          [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:overflow-x-auto
-          [&_pre_code]:bg-transparent
+          /* 优化代码块显示效果 - 美观大气 */
+          [&_pre]:my-6 [&_pre]:p-5 [&_pre]:rounded-xl [&_pre]:overflow-x-auto
+          [&_pre]:bg-gray-50 dark:[&_pre]:bg-gray-900/50
+          [&_pre]:border [&_pre]:border-gray-200 dark:[&_pre]:border-gray-700
+          [&_pre]:shadow-lg [&_pre]:shadow-gray-100/50 dark:[&_pre]:shadow-gray-900/20
+          [&_pre]:backdrop-blur-sm
           
-          /* 重构后的表格样式 - 强制覆盖prose默认样式 */
-          [&_table]:my-6 [&_table]:w-full [&_table]:border-collapse [&_table]:border [&_table]:border-light-border dark:[&_table]:border-dark-border [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:shadow-sm
+          /* 代码块标题栏效果 */
+          [&_pre]:relative [&_pre]:before:content-[''] [&_pre]:before:absolute [&_pre]:before:top-0 [&_pre]:before:left-0 
+          [&_pre]:before:right-0 [&_pre]:before:h-8 [&_pre]:before:bg-gradient-to-r 
+          [&_pre]:before:from-gray-100 [&_pre]:before:to-gray-50 
+          dark:[&_pre]:before:from-gray-800 dark:[&_pre]:before:to-gray-900/50
+          [&_pre]:before:rounded-t-xl [&_pre]:before:border-b [&_pre]:before:border-gray-200 
+          dark:[&_pre]:before:border-gray-700
           
-          /* 强制覆盖prose表格样式 - 确保居中对齐 */
-          [&_.prose_table]:!text-center [&_.prose_th]:!text-center [&_.prose_td]:!text-center
-          [&_.prose_table]:!w-full [&_.prose_table]:!border-collapse
-          [&_.prose_th]:!border [&_.prose_th]:border-light-border dark:[&_.prose_th]:!border-dark-border
-          [&_.prose_td]:!border [&_.prose_td]:!border-light-border dark:[&_.prose_td]:!border-dark-border
+          /* 代码块内容区域 */
+          [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:mt-8
+          [&_pre_code]:text-sm [&_pre_code]:leading-relaxed
+          [&_pre_code]:font-mono [&_pre_code]:tracking-wide
           
-          /* 表头样式 */
+          /* 行号效果 */
+          [&_.cm-lineNumbers]:bg-gray-100/50 dark:[&_.cm-lineNumbers]:bg-gray-800/50
+          [&_.cm-lineNumbers]:border-r [&__.cm-lineNumbers]:border-gray-200 dark:[&_.cm-lineNumbers]:border-gray-700
+          
+          /* 优化后的表格样式 - 更优雅的高宽比例 */
+          [&_table]:my-8 [&_table]:w-full [&_table]:border-collapse [&_table]:border [&_table]:border-light-border dark:[&_table]:border-dark-border [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:shadow-md [&_table]:text-sm
+          
+          /* 优化表格整体布局 */
+          [&_.prose_table]:!w-full [&_.prose_table]:!border-collapse [&_.prose_table]:!text-sm
+          [&_.prose_table]:!my-8 [&_.prose_table]:!shadow-md [&_.prose_table]:!rounded-xl [&_.prose_table]:!table-fixed
+          
+          /* 优化表头样式 - 更紧凑 */
           [&_thead]:bg-light-secondary dark:[&_thead]:bg-dark-secondary [&_thead]:border-b [&_thead]:border-light-border dark:[&_thead]:border-dark-border
           [&_thead_tr]:bg-transparent [&_thead_tr]:border-0
-          [&_thead_th]:border [&_thead_th]:border-light-border dark:[&_thead_th]:border-dark-border [&_thead_th]:pl-2 [&_thead_th]:pr-4 [&_thead_th]:py-3 [&_thead_th]:!text-center [&_thead_th]:font-semibold [&_thead_th]:text-light-text dark:[&_thead_th]:text-dark-text [&_thead_th]:bg-light-accent dark:[&_thead_th]:bg-dark-accent
+          [&_thead_th]:border [&_thead_th]:border-light-border dark:[&_thead_th]:border-dark-border [&_thead_th]:px-3 [&_thead_th]:py-2.5 [&_thead_th]:!text-center [&_thead_th]:font-semibold [&_thead_th]:text-light-text dark:[&_thead_th]:text-dark-text [&_thead_th]:bg-light-accent dark:[&_thead_th]:bg-dark-accent [&_thead_th]:leading-tight
           
-          /* 表格主体样式 */
+          /* 优化表格主体样式 */
           [&_tbody]:bg-transparent [&_tbody]:border-0
           
-          /* 统一的表格行样式 - 包括所有行（第一行无需特殊处理） */
-          [&_tbody_tr]:bg-transparent [&_tbody_tr]:border-0 [&_tbody_tr]:h-[3.5rem] [&_tbody_tr]:min-h-[3.5rem] [&_tbody_tr]:align-middle [&_tbody_tr]:leading-[1.5]
+          /* 优化表格行高 - 统一高度 */
+          [&_tbody_tr]:bg-transparent [&_tbody_tr]:border-0 [&_tbody_tr]:h-[3rem] [&_tbody_tr]:align-middle [&_tbody_tr]:leading-normal
           
-          /* 统一的表格单元格样式 */
-          [&_tbody_td]:border [&_tbody_td]:border-light-border dark:[&_tbody_td]:border-dark-border [&_tbody_td]:pl-4 [&_tbody_td]:pr-4 [&_tbody_td]:py-4 [&_tbody_td]:!text-center [&_tbody_td]:text-light-text dark:[&_tbody_td]:text-dark-text [&_tbody_td]:align-middle [&_tbody_td]:leading-normal [&_tbody_td]:bg-transparent [&_tbody_td]:h-[3.5rem]
+          /* 优化单元格样式 - 更舒适的间距 */
+          [&_tbody_td]:border [&_tbody_td]:border-light-border dark:[&_tbody_td]:border-dark-border [&_tbody_td]:px-3 [&_tbody_td]:py-2.5 [&_tbody_td]:!text-center [&_tbody_td]:text-light-text dark:[&_tbody_td]:text-dark-text [&_tbody_td]:align-middle [&_tbody_td]:leading-normal [&_tbody_td]:bg-transparent [&_tbody_td]:h-[3rem]
           
-          /* 隔行变色 */
-          [&_tbody_tr:nth-child(even)]:bg-light-accent/30 dark:[&_tbody_tr:nth-child(even)]:bg-dark-accent/20
+          /* 超紧凑操作列 - 极限收窄 */
+          [&_th[data-tool-cell]]:relative [&_th[data-tool-cell]]:w-4 [&_th[data-tool-cell]]:text-center [&_th[data-tool-cell]]:px-0 [&_th[data-tool-cell]]:overflow-hidden
+          [&_thead_th[data-tool-cell]]:w-4 [&_thead_th[data-tool-cell]]:px-0 [&_thead_th[data-tool-cell]]:overflow-hidden
           
-          /* 表格内元素垂直居中对齐 */
-          [&_table_p]:my-0 [&_table_p]:leading-normal [&_table_p]:align-middle
-          [&_table_code]:align-middle [&_table_span]:align-middle [&_table_strong]:align-middle [&_table_em]:align-middle [&_table_button]:align-middle [&_table_button]:text-center [&_table_button]:justify-center [&_table_a]:align-middle
+          /* 极限空间分配 - 操作列最小化，数据列最大化 */
+          [&_table]:table-fixed !important
+          [&_table_col:first-child]:w-4 !important
+          [&_table_col:last-child]:w-4 !important
+          [&_table_col:not(:first-child):not(:last-child)]:w-auto !important
+          
+          /* 单元格内边距优化 */
+          [&_tbody_td:first-child]:px-0 [&_tbody_td:first-child]:w-4
+          [&_tbody_td:last-child]:px-0 [&_tbody_td:last-child]:w-4
+          [&_tbody_td:not(:first-child):not(:last-child)]:px-2
+          
+          /* 隔行变色 - 更柔和的对比 */
+          [&_tbody_tr:nth-child(even)]:bg-light-accent/20 dark:[&_tbody_tr:nth-child(even)]:bg-dark-accent/15
+          
+          /* 单元格选中效果 - 优雅的交互反馈 */
+          [&_tbody_td]:relative [&_tbody_td]:transition-all [&_tbody_td]:duration-200 [&_tbody_td]:ease-in-out
+          [&_tbody_td:hover]:bg-light-accent/40 dark:[&_tbody_td:hover]:bg-dark-accent/25
+          [&_tbody_td:hover]:shadow-sm [&_tbody_td:hover]:scale-[1.02] [&_tbody_td:hover]:z-10
+          
+          /* 选中状态 - 优雅的边框效果 */
+          [&_tbody_td:focus]:bg-light-accent/50 dark:[&_tbody_td:focus]:bg-dark-accent/30
+          [&_tbody_td:focus]:ring-1 [&_tbody_td:focus]:ring-light-primary/30 dark:[&_tbody_td:focus]:ring-dark-primary/30
+          [&_tbody_td:focus]:border [&_tbody_td:focus]:border-light-primary/40 dark:[&_tbody_td:focus]:border-dark-primary/40
+          [&_tbody_td:focus]:outline-none
+          
+          /* 优化表格内元素样式 */
+          [&_table_p]:my-0 [&_table_p]:leading-normal [&_table_p]:align-middle [&_table_p]:text-sm
+          [&_table_code]:align-middle [&_table_code]:text-xs [&_table_code]:leading-tight [&_table_code]:py-0.5 [&_table_code]:px-1
+          [&_table_span]:align-middle [&_table_strong]:align-middle [&_table_em]:align-middle 
+          [&_table_button]:align-middle [&_table_button]:text-center [&_table_button]:justify-center [&_table_button]:text-xs
+          [&_table_a]:align-middle [&_table_a]:text-sm
+          
+          /* 优化表格内文本换行 */
+          [&_tbody_td]:whitespace-normal [&_tbody_td]:break-words [&_tbody_td]:max-w-[200px]
+          [&_thead_th]:whitespace-normal [&_thead_th]:break-words
           
           /* 表格菜单按钮特殊样式 - 修复偏移问题 */
           [&_table_.table-row-menu-button]:left-0 [&_table_.table-row-menu-button]:transform-none [&_table_.table-column-menu-button]:left-0 [&_table_.table-column-menu-button]:transform-none
+          
+          /* 表格工具单元格样式修复 */
+          [&_th[data-tool-cell]]:relative [&_th[data-tool-cell]]:w-8 [&_th[data-tool-cell]]:text-center
+          [&_th[data-tool-cell]_button]:absolute [&_th[data-tool-cell]_button]:left-1/2 [&_th[data-tool-cell]_button]:top-1/2
+          [&_th[data-tool-cell]_button]:-translate-x-1/2 [&_th[data-tool-cell]_button]:-translate-y-1/2 [&_th[data-tool-cell]_button]:m-0
           
           /* 表格内特殊元素样式 */
           [&_table_code]:bg-gray-200 dark:[&_table_code]:bg-gray-700 [&_table_code]:px-1 [&_table_code]:py-0.5 [&_table_code]:text-sm [&_table_code]:rounded

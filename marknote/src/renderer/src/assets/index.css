@@ -118,17 +118,172 @@
     @apply p-6; /* 增加内边距 */
   }
 
-  /* 修复对话框定位问题 - 更保守的方法 */
-  .link-dialog-anchor {
-    z-index: 50 !important;
+  /* 修复对话框定位问题 - 确保弹窗在正确位置显示 */
+  .link-dialog-anchor,
+  [class*="_linkDialogAnchor_"],
+  [class*="_linkDialogPopoverContent_"],
+  [class*="_dialogContent_"] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 9999 !important;
+    max-height: 80vh !important;
+    max-width: 90vw !important;
   }
 
-  .link-dialog-popover-content {
-    z-index: 51 !important;
+  /* 确保对话框内容可见且不被遮挡 */
+  .link-dialog-popover-content,
+  [class*="_linkDialogPopoverContent_"] {
+    z-index: 10000 !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
   }
 
-  /* 确保对话框内容可见 */
-  .dialog-content {
-    z-index: 51 !important;
+  .dialog-content,
+  [class*="_dialogContent_"] {
+    z-index: 10000 !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  /* 确保父容器不会影响fixed定位 */
+  #root,
+  .h-full,
+  .flex-1,
+  .flex-col {
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+  }
+
+  /* 禁用对话框背景遮罩效果 */
+  [class*="_dialogOverlay_"],
+  .dialog-overlay,
+  ._dialogOverlay_sects_870 {
+    display: none !important;
+    opacity: 0 !important;
+    background-color: transparent !important;
+    visibility: hidden !important;
+  }
+
+  /* 确保对话框没有背景遮罩 */
+  [data-radix-dialog-overlay],
+  [role="dialog"] + [class*="overlay"] {
+    display: none !important;
+  }
+
+  /* 强制隐藏所有可能的背景遮罩 */
+  .radix-dialog-overlay,
+  [data-state="open"] + [class*="overlay"],
+  [data-dialog-overlay],
+  .mdxeditor-dialog-overlay {
+    display: none !important;
+    opacity: 0 !important;
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+
+  /* 超强制定位修复 - 针对表格行菜单按钮 */
+  /* 强制所有表格工具单元格内的按钮绝对居中 */
+  ._tableEditor_sects_714 th[data-tool-cell="true"],
+  ._tableEditor_sects_714 td[data-tool-cell="true"] {
+    position: relative !important;
+    width: 2rem !important;
+    min-width: 2rem !important;
+    max-width: 2rem !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 强制行菜单按钮在所有行中居中 */
+  ._tableEditor_sects_714 tbody tr th[data-tool-cell="true"] > button,
+  ._tableEditor_sects_714 tbody tr td[data-tool-cell="true"] > button,
+  ._tableEditor_sects_714 ._toolCell_sects_725 > button {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    padding: 0.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+  }
+
+  /* 覆盖所有可能的行菜单按钮样式 */
+  ._tableEditor_sects_714 ._tableRowEditorTrigger_sects_745,
+  ._tableEditor_sects_714 ._tableColumnEditorTrigger_sects_744 {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+
+  /* 确保表格容器不会影响定位 */
+  ._tableEditor_sects_714 {
+    position: relative !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+
+  /* 修复表格行高度一致性 */
+  ._tableEditor_sects_714 tbody tr {
+    height: 3.5rem !important;
+    min-height: 3.5rem !important;
+    vertical-align: middle !important;
+  }
+
+  /* 强制覆盖所有行中的按钮位置 */
+  ._tableEditor_sects_714 tbody tr:nth-child(1) th[data-tool-cell="true"] > button,
+  ._tableEditor_sects_714 tbody tr:nth-child(2) th[data-tool-cell="true"] > button,
+  ._tableEditor_sects_714 tbody tr:nth-child(3) th[data-tool-cell="true"] > button,
+  ._tableEditor_sects_714 tbody tr:nth-child(n) th[data-tool-cell="true"] > button {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+  }
+
+  /* 使用更具体的选择器覆盖MDXEditor的样式 */
+  ._tableEditor_sects_714 ._tableRowEditorTrigger_sects_745[data-radix-popover-trigger] {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+
+  /* 针对Radix Popover的特殊修复 */
+  [data-radix-popover-trigger] {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+  }
+
+  /* 修复工具单元格内的按钮位置 */
+  ._toolCell_sects_725 [data-radix-popover-trigger] {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
   }
 }
