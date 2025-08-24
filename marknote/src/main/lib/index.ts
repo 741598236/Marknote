@@ -79,7 +79,7 @@ export const createNote: CreateNote = async (title?: string) => {
   if (title) {
     const filePath = join(rootDir, `${title}.md`)
     await writeFile(filePath, '')
-    return title
+    return true
   }
 
   const { filePath, canceled } = await dialog.showSaveDialog({
@@ -95,7 +95,7 @@ export const createNote: CreateNote = async (title?: string) => {
     return false
   }
 
-  const { name: filename, dir: parentDir } = path.parse(filePath)
+  const { dir: parentDir } = path.parse(filePath)
 
   if (parentDir !== rootDir) {
     await dialog.showMessageBox({
@@ -107,7 +107,7 @@ export const createNote: CreateNote = async (title?: string) => {
     return false
   }
   await writeFile(filePath, '')
-  return filename.replace(/\.md$/, '')
+  return true
 }
 
 export const renameNote: RenameNote = async (oldFilename, newFilename) => {

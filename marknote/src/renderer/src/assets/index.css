@@ -117,4 +117,18 @@
     @apply overflow-auto;
     @apply p-6; /* 增加内边距 */
   }
+
+  /* 修复对话框定位问题 - 更保守的方法 */
+  .link-dialog-anchor {
+    z-index: 50 !important;
+  }
+
+  .link-dialog-popover-content {
+    z-index: 51 !important;
+  }
+
+  /* 确保对话框内容可见 */
+  .dialog-content {
+    z-index: 51 !important;
+  }
 }

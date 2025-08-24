@@ -46,8 +46,12 @@ export const createEmptyNoteAtom = atom(null, async (get, set, noteTitle?: strin
   if (!notes) return
 
   if (!noteTitle) {
-    const title = await window.context.createNote()
-    if (!title) return
+    const success = await window.context.createNote()
+    if (!success) return
+
+    // 生成一个默认标题
+    const timestamp = Date.now()
+    const title = `Untitled-${timestamp}`
 
     const newNote: NoteInfo = {
       title,
@@ -63,11 +67,11 @@ export const createEmptyNoteAtom = atom(null, async (get, set, noteTitle?: strin
     return
   }
 
-  const title = await window.context.createNote(noteTitle)
-  if (!title) return
+  const success = await window.context.createNote(noteTitle)
+  if (!success) return
 
   const newNote: NoteInfo = {
-    title,
+    title: noteTitle,
     lastEditTime: Date.now()
   }
 

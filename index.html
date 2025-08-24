@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkNote - 概念设计 V6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom styles for dark mode transition */
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .sidebar, .note-card, .editor-toolbar, .content-pane, .status-bar, .top-header-section {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, width 0.3s ease-in-out, padding 0.3s ease-in-out;
+        }
+        /* Toolbar button base styles */
+        .toolbar-btn {
+            @apply p-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200;
+        }
+        .toolbar-separator {
+            @apply w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1;
+        }
+
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db; /* light mode - gray-300 */
+            border-radius: 10px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* dark mode - gray-600 */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0; /* light mode - gray-400 */
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* dark mode - gray-500 */
+        }
+
+        /* Custom toggle switch for day/night mode */
+        #theme-toggle-switch {
+            width: 56px; /* w-14 */
+            height: 32px; /* h-8 */
+            border-radius: 9999px; /* rounded-full */
+            position: relative;
+            cursor: pointer;
+            background-color: #e5e7eb; /* gray-200 */
+            transition: background-color 0.3s ease;
+        }
+        .dark #theme-toggle-switch {
+            background-color: #4a5568; /* gray-700 */
+        }
+        #theme-toggle-switch .toggle-thumb {
+            width: 24px; /* w-6 */
+            height: 24px; /* h-6 */
+            border-radius: 9999px; /* rounded-full */
+            background-color: white;
+            position: absolute;
+            top: 4px; /* p-1 from track */
+            left: 4px; /* p-1 from track */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dark #theme-toggle-switch .toggle-thumb {
+            transform: translateX(24px); /* Move 24px to the right (56-24-4-4 = 24) */
+            background-color: #cbd5e0; /* gray-300 */
+        }
+        #theme-toggle-switch .toggle-thumb i {
+            font-size: 0.875rem; /* text-sm */
+            color: #4a5568; /* gray-700 */
+            transition: color 0.3s ease;
+        }
+        .dark #theme-toggle-switch .toggle-thumb i {
+            color: #1a202c; /* gray-900 */
+        }
+        #sun-icon, #moon-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #sun-icon { color: #f6ad55; } /* amber-400 */
+        #moon-icon { color: #a0aec0; } /* gray-400 */
+
+        /* CodeMirror specific styling adjustments for dark mode */
+        .cm-editor {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+        .cm-editor.cm-focused {
+            outline: none !important; /* Remove default CodeMirror outline */
+        }
+        /* Placeholder for CodeMirror theme - in a real app, you'd load themes */
+        .cm-editor.cm-light {
+            background-color: #f7fafc; /* gray-50 */
+            color: #1a202c; /* gray-900 */
+        }
+        .cm-editor.cm-dark {
+            background-color: #1a202c; /* gray-900 */
+            color: #e2e8f0; /* gray-200 */
+        }
+
+        /* Sidebar Collapse/Expand */
+        .sidebar {
+            width: 288px; /* w-72 */
+            transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+            flex-shrink: 0; /* Prevent shrinking when main content expands */
+            padding: 1rem; /* default p-4 */
+        }
+        .sidebar.collapsed {
+            width: 64px; /* w-16 */
+            padding: 1rem 0.5rem; /* Reduced horizontal padding */
+        }
+
+        .sidebar-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out 0.1s; /* Slight delay for content fade */
+        }
+        .sidebar.collapsed .sidebar-content-wrapper {
+            opacity: 0;
+            pointer-events: none; /* Disable interaction when hidden */
+            overflow: hidden; /* Hide overflow */
+            width: 0; /* Collapse content horizontally */
+            position: absolute; /* Take out of flow for smooth collapse */
+        }
+
+        .sidebar-icon-only {
+            display: none !important; /* Hidden by default */
+            transition: opacity 0.3s ease-in-out 0.1s;
+        }
+        .sidebar.collapsed .sidebar-icon-only {
+            display: flex !important; /* Show icons only */
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem; /* Space between icons */
+            padding-top: 1rem;
+            height: 100%; /* Fill available height */
+            opacity: 1;
+        }
+
+        /* Adjustments for elements inside collapsed sidebar */
+        .sidebar.collapsed .new-note-btn {
+            width: 48px; /* w-12 */
+            height: 48px; /* h-12 */
+            border-radius: 9999px; /* rounded-full */
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem; /* Adjust margin for spacing */
+        }
+        .sidebar.collapsed .new-note-btn i {
+            margin-right: 0 !important;
+            font-size: 1.5rem; /* Larger icon */
+        }
+        .sidebar.collapsed .new-note-btn span {
+            display: none;
+        }
+
+        .sidebar.collapsed .quick-filters-title,
+        .sidebar.collapsed .custom-tags-title,
+        .sidebar.collapsed #custom-tags-container,
+        .sidebar.collapsed #new-tag-input,
+        .sidebar.collapsed #add-tag-btn {
+            display: none; /* Hide these sections entirely */
+        }
+
+        .sidebar.collapsed .quick-filters-grid {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            gap: 0.5rem; /* Smaller gap */
+        }
+        .sidebar.collapsed .quick-filters-grid button {
+            width: 48px; /* w-12 */
+            height: 48px; /* h-12 */
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 9999px; /* rounded-full */
+        }
+        .sidebar.collapsed .quick-filters-grid button span {
+            display: none;
+        }
+        .sidebar.collapsed .quick-filters-grid button i {
+            margin-right: 0 !important;
+            font-size: 1.25rem; /* text-xl */
+        }
+
+        .note-card {
+            display: flex; /* Ensure flex for icon alignment */
+            align-items: center;
+            position: relative; /* For icon positioning */
+            transition: all 0.3s ease-in-out;
+        }
+        .note-card.collapsed-view {
+            width: 48px; /* w-12 */
+            height: 48px; /* h-12 */
+            padding: 0;
+            border-radius: 9999px; /* rounded-full */
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            margin-left: auto; /* Center in collapsed sidebar */
+            margin-right: auto;
+            overflow: hidden; /* Hide text overflow */
+            background-color: transparent !important; /* Make background transparent */
+            box-shadow: none !important; /* Remove shadow */
+            border-color: transparent !important; /* Remove border */
+        }
+        .note-card.collapsed-view h3,
+        .note-card.collapsed-view p,
+        .note-card.collapsed-view .flex { /* Hide text content */
+            display: none;
+            opacity: 0;
+            transition: opacity 0.1s ease-in-out;
+        }
+        .note-card.collapsed-view .note-icon {
+            display: block !important;
+            font-size: 1.5rem; /* text-2xl */
+            color: #6b7280; /* gray-500 */
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out 0.1s;
+        }
+        .note-icon {
+            display: none; /* Hidden by default in expanded view */
+        }
+    </style>
+    <script>
+        // Set Inter font family
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+            darkMode: 'class', // Enable dark mode based on 'dark' class on <html>
+        }
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <div class="flex flex-col w-full h-full">
+        <header class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm z-10 relative">
+            <div class="flex items-center space-x-3 z-20">
+                <button id="sidebar-toggle" class="p-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200" title="切换侧边栏">
+                    <i class="fas fa-chevron-left text-lg" id="collapse-icon"></i>
+                </button>
+
+                <button id="theme-toggle" class="relative p-0 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200" title="切换主题">
+                    <div id="theme-toggle-switch">
+                        <div class="toggle-thumb">
+                            <i class="fas fa-sun text-sm" id="sun-icon"></i>
+                            <i class="fas fa-moon text-sm hidden" id="moon-icon"></i>
+                        </div>
+                    </div>
+                </button>
+                <button class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200" title="设置">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 flex justify-center items-center absolute inset-0 pointer-events-none">
+                <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200 pointer-events-auto">MarkNote</h1>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-4 ml-auto z-20">
+                <div class="relative w-32 sm:w-48 md:w-64"> <input type="text" placeholder="全局搜索..." class="pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors duration-200 w-full">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
+                </div>
+                <div class="hidden sm:flex items-center space-x-0.5"> <button class="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200" title="最小化">
+                        <i class="fas fa-window-minimize text-xs"></i>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200" title="最大化/还原">
+                        <i class="fas fa-window-restore text-xs"></i>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-red-500 hover:text-white transition-colors duration-200" title="关闭">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+            <aside id="sidebar" class="sidebar bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-md relative">
+                <div class="sidebar-content-wrapper flex-1 p-4 overflow-y-auto custom-scrollbar">
+                    <div class="mb-6 space-y-3">
+                        <button class="new-note-btn w-full py-2.5 px-4 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 flex items-center justify-center space-x-2 text-base font-medium">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>新建笔记</span>
+                        </button>
+
+                        <div class="quick-filters-title text-sm font-semibold text-gray-600 dark:text-gray-300 mt-4 mb-2">快速筛选</div>
+                        <div class="quick-filters-grid grid grid-cols-2 gap-2 text-sm">
+                            <button class="py-1.5 px-3 rounded-md bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors duration-200 active-filter" data-filter="all">
+                                <i class="fas fa-th-list mr-1"></i> <span>所有笔记</span>
+                            </button>
+                            <button class="py-1.5 px-3 rounded-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200" data-filter="code">
+                                <i class="fas fa-code mr-1"></i> <span>代码笔记</span>
+                            </button>
+                            <button class="py-1.5 px-3 rounded-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200" data-filter="project">
+                                <i class="fas fa-project-diagram mr-1"></i> <span>项目文档</span>
+                            </button>
+                            <button class="py-1.5 px-3 rounded-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200" data-filter="draft">
+                                <i class="fas fa-pencil-alt mr-1"></i> <span>草稿</span>
+                            </button>
+                        </div>
+
+                        <div class="custom-tags-title text-sm font-semibold text-gray-600 dark:text-gray-300 mt-6 mb-2">我的标签</div>
+                        <div id="custom-tags-container" class="flex flex-wrap gap-2 mb-3">
+                            <span class="tag-item text-xs px-2 py-0.5 bg-purple-200 text-purple-800 dark:bg-purple-700 dark:text-purple-200 rounded-full cursor-pointer hover:opacity-80 transition-opacity duration-200" data-tag="React">#React <i class="fas fa-times ml-1 text-xs opacity-70 hover:opacity-100 remove-tag-btn"></i></span>
+                            <span class="tag-item text-xs px-2 py-0.5 bg-teal-200 text-teal-800 dark:bg-teal-700 dark:text-teal-200 rounded-full cursor-pointer hover:opacity-80 transition-opacity duration-200" data-tag="学习">#学习 <i class="fas fa-times ml-1 text-xs opacity-70 hover:opacity-100 remove-tag-btn"></i></span>
+                            <span class="tag-item text-xs px-2 py-0.5 bg-orange-200 text-orange-800 dark:bg-orange-700 dark:text-orange-200 rounded-full cursor-pointer hover:opacity-80 transition-opacity duration-200" data-tag="灵感">#灵感 <i class="fas fa-times ml-1 text-xs opacity-70 hover:opacity-100 remove-tag-btn"></i></span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <input type="text" id="new-tag-input" placeholder="添加新标签..." class="flex-1 py-1.5 px-3 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors duration-200 text-sm">
+                            <button id="add-tag-btn" class="py-1.5 px-3 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-200">添加</button>
+                        </div>
+                    </div>
+
+                    <div id="note-list" class="flex-1 space-y-2">
+                        <div class="note-card p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-transparent dark:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 active-note" data-tags="all,welcome,学习">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 truncate">欢迎使用 MarkNote ✨</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">2025/05/27 11:29</p>
+                            <div class="flex items-center space-x-1 mt-2">
+                                <span class="text-xs px-2 py-0.5 bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200 rounded-full">#入门</span>
+                                <span class="text-xs px-2 py-0.5 bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200 rounded-full">#教程</span>
+                            </div>
+                            <i class="note-icon fas fa-file-alt hidden"></i>
+                        </div>
+                        <div class="note-card p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-transparent dark:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200" data-tags="all,code,project,React">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 truncate">React组件优化技巧</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">2025/05/26 15:30</p>
+                            <div class="flex items-center space-x-1 mt-2">
+                                <span class="text-xs px-2 py-0.5 bg-purple-200 text-purple-800 dark:bg-purple-700 dark:text-purple-200 rounded-full">#React</span>
+                                <span class="text-xs px-2 py-0.5 bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200 rounded-full">#性能</span>
+                            </div>
+                            <i class="note-icon fas fa-code hidden"></i>
+                        </div>
+                        <div class="note-card p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-transparent dark:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200" data-tags="all,draft,灵感">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 truncate">新项目构思草稿</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">2025/05/25 09:00</p>
+                            <div class="flex items-center space-x-1 mt-2">
+                                <span class="text-xs px-2 py-0.5 bg-red-200 text-red-800 dark:bg-red-700 dark:text-red-200 rounded-full">#想法</span>
+                            </div>
+                            <i class="note-icon fas fa-pencil-alt hidden"></i>
+                        </div>
+                        <div class="note-card p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 border border-transparent dark:border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200" data-tags="all,code,学习">
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-200 truncate">Python数据结构与算法笔记</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">2025/05/24 10:45</p>
+                            <div class="flex items-center space-x-1 mt-2">
+                                <span class="text-xs px-2 py-0.5 bg-indigo-200 text-indigo-800 dark:bg-indigo-700 dark:text-indigo-200 rounded-full">#Python</span>
+                                <span class="text-xs px-2 py-0.5 bg-gray-300 text-gray-800 dark:bg-gray-600 dark:text-gray-200 rounded-full">#算法</span>
+                            </div>
+                            <i class="note-icon fas fa-book hidden"></i>
+                        </div>
+                        </div>
+                </div>
+                <div class="sidebar-icon-only absolute inset-0 hidden">
+                    <button class="new-note-btn w-12 h-12 rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 flex items-center justify-center text-base font-medium">
+                        <i class="fas fa-plus-circle text-xl"></i>
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-700 flex items-center justify-center active-filter" data-filter="all">
+                        <i class="fas fa-th-list text-xl"></i>
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center" data-filter="code">
+                        <i class="fas fa-code text-xl"></i>
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center" data-filter="project">
+                        <i class="fas fa-project-diagram text-xl"></i>
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center" data-filter="draft">
+                        <i class="fas fa-pencil-alt text-xl"></i>
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-purple-200 text-purple-800 dark:bg-purple-700 dark:text-purple-200 flex items-center justify-center" data-filter="React">
+                        <i class="fas fa-tag text-xl"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <main class="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+                <div class="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shadow-sm">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 flex-1 truncate">优雅的 Markdown 编辑器 <i class="fas fa-pencil-alt text-sm text-gray-400 ml-2 cursor-pointer hover:text-blue-500 transition-colors duration-200"></i></h2>
+                    <div class="flex items-center space-x-3">
+                        <button class="toolbar-btn" title="导出笔记">
+                            <i class="fas fa-file-export"></i>
+                        </button>
+                        <button class="toolbar-btn text-red-600 hover:bg-red-100 dark:hover:bg-red-900" title="删除笔记">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="editor-toolbar p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-2 items-center">
+                    <button class="toolbar-btn" title="撤销"><i class="fas fa-undo"></i></button>
+                    <button class="toolbar-btn" title="重做"><i class="fas fa-redo"></i></button>
+                    <span class="toolbar-separator"></span>
+                    <button class="toolbar-btn" title="粗体"><i class="fas fa-bold"></i></button>
+                    <button class="toolbar-btn" title="斜体"><i class="fas fa-italic"></i></button>
+                    <button class="toolbar-btn" title="下划线"><i class="fas fa-underline"></i></button>
+                    <button class="toolbar-btn" title="代码"><i class="fas fa-code"></i></button>
+                    <span class="toolbar-separator"></span>
+                    <button class="toolbar-btn" title="无序列表"><i class="fas fa-list-ul"></i></button>
+                    <button class="toolbar-btn" title="有序列表"><i class="fas fa-list-ol"></i></button>
+                    <button class="toolbar-btn" title="任务列表"><i class="fas fa-tasks"></i></button>
+                    <span class="toolbar-separator"></span>
+                    <button class="toolbar-btn" title="插入图片"><i class="fas fa-image"></i></button>
+                    <button class="toolbar-btn" title="插入链接"><i class="fas fa-link"></i></button>
+                    <button class="toolbar-btn" title="插入表格"><i class="fas fa-table"></i></button>
+                    <button class="toolbar-btn" title="插入数学公式 (LaTeX)"><i class="fas fa-calculator"></i></button>
+                    <button class="toolbar-btn" title="插入图表 (Mermaid)"><i class="fas fa-chart-bar"></i></button>
+                    <button class="toolbar-btn" title="插入代码块"><i class="fas fa-file-code"></i></button>
+                    <span class="toolbar-separator"></span>
+                    <button class="toolbar-btn bg-blue-500 text-white hover:bg-blue-600" title="AI 助手"><i class="fas fa-magic"></i> AI</button>
+                    <button id="view-toggle" class="toolbar-btn ml-auto" title="切换视图">
+                        <i class="fas fa-eye" id="eye-icon"></i>
+                        <i class="fas fa-code hidden" id="code-icon"></i>
+                    </button>
+                </div>
+
+                <div class="content-pane flex-1 p-4 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900">
+                    <div id="codemirror-editor" class="h-full border border-transparent rounded-lg p-4 focus-within:border-blue-400 dark:focus-within:border-blue-600 editor-view">
+                        <h1 class="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-200">优雅的 Markdown 编辑器</h1>
+                        <p class="mb-2 text-gray-700 dark:text-gray-300">欢迎来到 MarkNote！这是一个为你量身打造的 Markdown 笔记应用。</p>
+                        <blockquote class="border-l-4 border-blue-500 pl-4 py-2 my-4 text-gray-600 dark:text-gray-400 italic">
+                            <p>“简洁、高效、专注”</p>
+                        </blockquote>
+                        <h2 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-gray-200">✨ 功能特性</h2>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">
+                            <li>实时 Markdown 预览：即时呈现排版效果</li>
+                            <li>简洁文件管理：通过标签和智能分组轻松管理笔记</li>
+                            <li>自动保存：所有更改自动保存，无需手动操作</li>
+                            <li>跨平台支持：Windows/macOS/Linux 全平台兼容</li>
+                            <li>主题切换：内置昼夜主题，保护您的眼睛</li>
+                            <li>代码高亮：支持多种编程语言语法高亮</li>
+                            <li>数学公式支持： 使用 LaTeX 语法轻松编写公式，例如：$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$</li>
+                            <li>图表绘制： 支持 Mermaid 语法绘制流程图、序列图等：</li>
+                        </ul>
+                        <pre class="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm overflow-x-auto text-gray-800 dark:text-gray-200"><code>graph TD;
+    A[开始] --> B{决策};
+    B -- 是 --> C[行动];
+    C --> D[结束];
+    B -- 否 --> E[等待];
+    E --> A;</code></pre>
+                        <h2 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-gray-200">🛠️ 技术栈</h2>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">
+                            <li>前端框架: React + TypeScript</li>
+                            <li>构建工具: Vite</li>
+                            <li>UI 框架: TailwindCSS</li>
+                            <li>编辑器: CodeMirror</li>
+                            <li>打包工具: Electron + electron-builder</li>
+                        </ul>
+                        <h2 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-gray-200">🚀 快速开始</h2>
+                        <pre class="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm overflow-x-auto text-gray-800 dark:text-gray-200"><code># 克隆项目
+git clone https://gitee.com/your-repo/marknote.git
+
+# 安装依赖
+yarn install
+
+# 启动开发模式
+yarn dev</code></pre>
+                    </div>
+
+                    <div id="markdown-preview" class="h-full p-4 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-800 hidden preview-view">
+                        <h1 class="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-200">优雅的 Markdown 编辑器</h1>
+                        <p class="mb-2 text-gray-700 dark:text-gray-300">欢迎来到 MarkNote！这是一个为你量身打造的 Markdown 笔记应用。</p>
+                        <blockquote class="border-l-4 border-blue-500 pl-4 py-2 my-4 text-gray-600 dark:text-gray-400 italic">
+                            <p>“简洁、高效、专注”</p>
+                        </blockquote>
+                        <h2 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-gray-200">✨ 功能特性</h2>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">
+                            <li>实时 Markdown 预览：即时呈现排版效果</li>
+                            <li>简洁文件管理：通过标签和智能分组轻松管理笔记</li>
+                            <li>自动保存：所有更改自动保存，无需手动操作</li>
+                            <li>跨平台支持：Windows/macOS/Linux 全平台兼容</li>
+                            <li>主题切换：内置昼夜主题，保护您的眼睛</li>
+                            <li>代码高亮：支持多种编程语言语法高亮</li>
+                            <li>数学公式支持： 使用 LaTeX 语法轻松编写公式，例如：$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$</li>
+                            <li>图表绘制： 支持 Mermaid 语法绘制流程图、序列图等：</li>
+                        </ul>
+                        <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm overflow-x-auto text-gray-800 dark:text-gray-200">
+                            <p><em>此处将渲染 Mermaid 图表</em></p>
+                            <img src="https://placehold.co/300x150/e0e0e0/000000?text=Mermaid+Chart" alt="Mermaid Chart Placeholder" class="my-2 rounded-md">
+                        </div>
+                        <h2 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-gray-200">🛠️ 技术栈</h2>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">
+                            <li>前端框架: React + TypeScript</li>
+                            <li>构建工具: Vite</li>
+                            <li>UI 框架: TailwindCSS</li>
+                            <li>编辑器: CodeMirror</li>
+                            <li>打包工具: Electron + electron-builder</li>
+                        </ul>
+                        <h2 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-gray-200">🚀 快速开始</h2>
+                        <pre class="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm overflow-x-auto text-gray-800 dark:text-gray-200"><code># 克隆项目
+git clone https://gitee.com/your-repo/marknote.git
+
+# 安装依赖
+yarn install
+
+# 启动开发模式
+yarn dev</code></pre>
+                    </div>
+                </div>
+
+                <footer class="status-bar p-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center text-sm text-gray-600 dark:text-gray-400 shadow-inner">
+                    <span class="mr-4">行数: <span id="line-count">0</span></span>
+                    <span class="mr-4">字数: <span id="word-count">0</span></span>
+                    <span>字符数: <span id="char-count">0</span></span>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeToggleSwitch = document.getElementById('theme-toggle-switch');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const htmlElement = document.documentElement;
+
+        // Check local storage for theme preference
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+            htmlElement.classList.add('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        } else {
+            htmlElement.classList.remove('dark');
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                localStorage.setItem('theme', 'light');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        // Sidebar Collapse Logic
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle'); // Button is now in header
+        const collapseIcon = document.getElementById('collapse-icon');
+        const sidebarContentWrapper = document.querySelector('.sidebar-content-wrapper');
+        const sidebarIconOnly = document.querySelector('.sidebar-icon-only');
+        const noteCards = document.querySelectorAll('.note-card');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                collapseIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+                // Hide content wrapper, show icon-only view
+                sidebarContentWrapper.style.opacity = '0';
+                sidebarContentWrapper.style.pointerEvents = 'none';
+                // Use setTimeout to allow CSS transition to start before changing position/width
+                setTimeout(() => {
+                    sidebarContentWrapper.style.position = 'absolute'; // Take out of flow
+                    sidebarContentWrapper.style.width = '0'; // Collapse width
+                }, 300); // Match CSS transition duration
+
+                sidebarIconOnly.style.display = 'flex';
+                sidebarIconOnly.style.opacity = '1';
+
+                noteCards.forEach(card => card.classList.add('collapsed-view'));
+            } else {
+                collapseIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+                // Show content wrapper, hide icon-only view
+                sidebarContentWrapper.style.position = 'static'; // Restore to flow
+                sidebarContentWrapper.style.width = 'auto'; // Restore width
+                sidebarContentWrapper.style.opacity = '1';
+                sidebarContentWrapper.style.pointerEvents = 'auto';
+
+                sidebarIconOnly.style.display = 'none';
+                sidebarIconOnly.style.opacity = '0';
+
+                noteCards.forEach(card => card.classList.remove('collapsed-view'));
+            }
+        });
+
+        // Note Filtering Logic
+        const filterButtons = document.querySelectorAll('[data-filter]');
+        const noteListContainer = document.getElementById('note-list');
+
+        function applyFilter(filterTag) {
+            noteCards.forEach(card => {
+                const cardTags = card.dataset.tags ? card.dataset.tags.split(',') : [];
+                if (filterTag === 'all' || cardTags.includes(filterTag)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all quick filters
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('active-filter', 'bg-blue-100', 'text-blue-800', 'dark:bg-blue-800', 'dark:text-blue-100');
+                    btn.classList.add('bg-gray-100', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+                });
+
+                // Add active class to clicked quick filter
+                button.classList.add('active-filter', 'bg-blue-100', 'text-blue-800', 'dark:bg-blue-800', 'dark:text-blue-100');
+                button.classList.remove('bg-gray-100', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+
+                const filterTag = button.dataset.filter;
+                applyFilter(filterTag);
+            });
+        });
+
+        // Simulate active note selection
+        noteListContainer.addEventListener('click', (event) => {
+            const clickedNote = event.target.closest('.note-card');
+            if (clickedNote) {
+                noteCards.forEach(card => {
+                    card.classList.remove('active-note', 'bg-gray-200', 'dark:bg-blue-900', 'border-blue-300', 'dark:border-blue-600');
+                    card.classList.add('bg-gray-50', 'dark:bg-gray-700', 'border-transparent', 'dark:border-transparent');
+                });
+                clickedNote.classList.add('active-note', 'bg-gray-200', 'dark:bg-blue-900', 'border-blue-300', 'dark:border-blue-600');
+                clickedNote.classList.remove('bg-gray-50', 'dark:bg-gray-700', 'border-transparent', 'dark:border-transparent');
+                
+                // Update word count based on the content of the clicked note
+                updateContentStats();
+            }
+        });
+
+        // Initial active filter and note
+        document.querySelector('.active-filter').click();
+        document.querySelector('.active-note').click();
+
+        // Editor/Preview Toggle Logic
+        const viewToggle = document.getElementById('view-toggle');
+        const editorView = document.getElementById('codemirror-editor');
+        const previewView = document.getElementById('markdown-preview');
+        const eyeIcon = document.getElementById('eye-icon');
+        const codeIcon = document.getElementById('code-icon');
+
+        let isEditorView = true; // Start with editor view
+
+        viewToggle.addEventListener('click', () => {
+            if (isEditorView) {
+                // Switch to preview
+                editorView.classList.add('hidden');
+                previewView.classList.remove('hidden');
+                eyeIcon.classList.add('hidden');
+                codeIcon.classList.remove('hidden');
+                viewToggle.title = '显示源码';
+            } else {
+                // Switch to editor
+                editorView.classList.remove('hidden');
+                previewView.classList.add('hidden');
+                eyeIcon.classList.remove('hidden');
+                codeIcon.classList.add('hidden');
+                viewToggle.title = '显示预览';
+            }
+            isEditorView = !isEditorView;
+            updateContentStats(); // Update stats after view switch
+        });
+
+        // Custom Tag Management Logic
+        const newTagInput = document.getElementById('new-tag-input');
+        const addTagBtn = document.getElementById('add-tag-btn');
+        const customTagsContainer = document.getElementById('custom-tags-container');
+
+        // Function to render a tag item
+        function renderTag(tagName) {
+            const tagColors = ['bg-blue-200', 'bg-green-200', 'bg-purple-200', 'bg-red-200', 'bg-teal-200', 'bg-orange-200', 'bg-indigo-200'];
+            const tagTextColors = ['text-blue-800', 'text-green-800', 'text-purple-800', 'text-red-800', 'text-teal-800', 'text-orange-800', 'text-indigo-800'];
+            const darkTagColors = ['dark:bg-blue-700', 'dark:bg-green-700', 'dark:bg-purple-700', 'dark:bg-red-700', 'dark:bg-teal-700', 'dark:bg-orange-700', 'dark:bg-indigo-700'];
+            const darkTagTextColors = ['dark:text-blue-200', 'dark:text-green-200', 'dark:text-purple-200', 'dark:text-red-200', 'dark:text-teal-200', 'dark:text-orange-200', 'dark:text-indigo-200'];
+
+            const randomIndex = Math.floor(Math.random() * tagColors.length);
+            const bgColor = tagColors[randomIndex];
+            const textColor = tagTextColors[randomIndex];
+            const darkBgColor = darkTagColors[randomIndex];
+            const darkTextColor = darkTagTextColors[randomIndex];
+
+            const tagSpan = document.createElement('span');
+            tagSpan.className = `tag-item text-xs px-2 py-0.5 ${bgColor} ${textColor} ${darkBgColor} ${darkTextColor} rounded-full cursor-pointer hover:opacity-80 transition-opacity duration-200`;
+            tagSpan.dataset.tag = tagName;
+            tagSpan.innerHTML = `#${tagName} <i class="fas fa-times ml-1 text-xs opacity-70 hover:opacity-100 remove-tag-btn"></i>`;
+
+            // Add click listener for filtering
+            tagSpan.addEventListener('click', (e) => {
+                // If clicking the 'x' icon, handle removal
+                if (e.target.classList.contains('remove-tag-btn')) {
+                    return; // Handled by separate listener
+                }
+                // Otherwise, filter notes by this tag
+                // Remove active class from quick filters
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('active-filter', 'bg-blue-100', 'text-blue-800', 'dark:bg-blue-800', 'dark:text-blue-100');
+                    btn.classList.add('bg-gray-100', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+                });
+                // Simulate active state for custom tag (optional, for visual feedback)
+                // In a real app, you might add a visual active state for the clicked tag
+                applyFilter(tagName);
+            });
+
+            // Add click listener for removal
+            tagSpan.querySelector('.remove-tag-btn').addEventListener('click', () => {
+                tagSpan.remove();
+                // In a real app, you'd also remove this tag from your data store
+                // And update notes that might have this tag
+            });
+
+            customTagsContainer.appendChild(tagSpan);
+        }
+
+        // Add new tag handler
+        addTagBtn.addEventListener('click', () => {
+            const newTag = newTagInput.value.trim();
+            if (newTag) {
+                // Check if tag already exists (simple check for demo)
+                const existingTags = Array.from(customTagsContainer.querySelectorAll('.tag-item')).map(el => el.dataset.tag);
+                if (!existingTags.includes(newTag)) {
+                    renderTag(newTag);
+                }
+                newTagInput.value = ''; // Clear input
+            }
+        });
+
+        // Initial rendering of existing custom tags (for demo purposes)
+        document.querySelectorAll('.tag-item').forEach(tagItem => {
+            tagItem.querySelector('.remove-tag-btn').addEventListener('click', () => {
+                tagItem.remove();
+            });
+            tagItem.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-tag-btn')) {
+                    return;
+                }
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('active-filter', 'bg-blue-100', 'text-blue-800', 'dark:bg-blue-800', 'dark:text-blue-100');
+                    btn.classList.add('bg-gray-100', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+                });
+                applyFilter(tagItem.dataset.tag);
+            });
+        });
+
+        // Content Statistics Logic
+        const lineCountSpan = document.getElementById('line-count');
+        const wordCountSpan = document.getElementById('word-count');
+        const charCountSpan = document.getElementById('char-count');
+
+        function updateContentStats() {
+            let content = '';
+            // In a real app, you'd get content from CodeMirror instance
+            // For this demo, we'll use the innerText of the visible content area
+            if (!editorView.classList.contains('hidden')) {
+                content = editorView.innerText;
+            } else if (!previewView.classList.contains('hidden')) {
+                content = previewView.innerText;
+            }
+
+            const lines = content.split('\n').filter(line => line.trim() !== '').length;
+            const words = content.split(/\s+/).filter(word => word.trim() !== '').length;
+            const chars = content.length; // Including spaces and newlines
+
+            lineCountSpan.textContent = lines;
+            wordCountSpan.textContent = words;
+            charCountSpan.textContent = chars;
+        }
+
+        // Initial update of stats on load
+        window.onload = () => {
+            updateContentStats();
+        };
+
+        // For demo, simulate content change to trigger stats update
+        // In a real app, this would be tied to CodeMirror's change event
+        setInterval(updateContentStats, 2000); // Update every 2 seconds for demo
+    </script>
+</body>
+</html>
