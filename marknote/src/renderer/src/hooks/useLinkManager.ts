@@ -40,8 +40,8 @@ export const useLinkManager = () => {
 
   // 获取笔记中的所有链接
   const getNoteLinks = (noteTitle: string): LinkInfo[] => {
-    const note = notes.find(n => n.title === noteTitle)
-    if (!note) return []
+    const note = notes?.find(n => n.title === noteTitle)
+    if (!note || !note.content) return []
     
     return extractLinks(note.content)
   }
@@ -56,7 +56,9 @@ export const useLinkManager = () => {
       notes: [] as Array<{ title: string; links: LinkInfo[] }>
     }
 
-    notes.forEach(note => {
+    notes?.forEach(note => {
+      if (!note.content) return
+      
       const links = extractLinks(note.content)
       stats.notes.push({ title: note.title, links })
       stats.totalLinks += links.length
@@ -75,10 +77,12 @@ export const useLinkManager = () => {
 
   // 检查内部链接是否有效
   const validateInternalLinks = () => {
-    const noteTitles = new Set(notes.map(n => n.title))
+    const noteTitles = new Set(notes?.map(n => n.title) || [])
     const brokenLinks: LinkInfo[] = []
 
-    notes.forEach(note => {
+    notes?.forEach(note => {
+      if (!note.content) return
+      
       const links = extractLinks(note.content)
       links.forEach(link => {
         if (link.isInternal) {
@@ -95,26 +99,28 @@ export const useLinkManager = () => {
 
   // 搜索包含特定链接的笔记
   const searchNotesByLink = (searchUrl: string) => {
-    return notes.filter(note => {
+    return notes?.filter(note => {
+      if (!note.content) return false
       const links = extractLinks(note.content)
       return links.some(link => link.url.includes(searchUrl))
-    })
+    }) || []
   }
 
   // 批量替换链接
   const batchReplaceLinks = (oldUrl: string, newUrl: string, newTitle?: string) => {
-    return notes.map(note => {
-      let newContent = note.content
+    return notes?.map(note => {
+      let newContent = note.content || ''
       
-      // 替换Markdown链接
-      const regex = new RegExp(`\\[([^\\]]*)\\]\\(${oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'g')
-      newContent = newContent.replace(regex, newTitle ? `[$1](${newUrl})` : `[$1](${newUrl})`)
+      // 替换Markdown链接 - 使用简单的字符串替换
+      const oldLinkPattern = '[' + oldUrl + ']('
+      const newLinkPattern = '[' + (newTitle || '$1') + '](' + newUrl + ')'
+      newContent = newContent.split('[' + oldUrl + '](').join('[' + newUrl + '](')
       
       return {
         ...note,
         content: newContent
       }
-    })
+    }) || []
   }
 
   return {

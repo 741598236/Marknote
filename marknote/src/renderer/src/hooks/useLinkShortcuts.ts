@@ -90,7 +90,7 @@ export const useLinkShortcuts = ({
       // 检查是否为内部链接格式
       if (clipboardText.startsWith('#')) {
         const noteTitle = clipboardText.substring(1)
-        const note = notes.find(n => n.title === noteTitle)
+        const note = notes?.find(n => n.title === noteTitle)
         if (note) {
           onQuickLink(clipboardText, note.title)
           return
@@ -115,7 +115,7 @@ export const useLinkShortcuts = ({
       // 对于内部链接
       if (url.startsWith('#')) {
         const noteTitle = url.substring(1)
-        const note = notes.find(n => n.title === noteTitle)
+        const note = notes?.find(n => n.title === noteTitle)
         return note ? note.title : null
       }
 

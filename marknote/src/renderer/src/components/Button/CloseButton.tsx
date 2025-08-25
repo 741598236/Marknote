@@ -4,7 +4,7 @@ import { LuX } from 'react-icons/lu'
 
 export const CloseButton = ({ ...props }: ActionButtonProps) => {
   const handleClose = () => {
-    window.context.ipcRenderer.send('window:close')
+    window.context?.ipcRenderer?.send('window:close')
   }
 
   return (

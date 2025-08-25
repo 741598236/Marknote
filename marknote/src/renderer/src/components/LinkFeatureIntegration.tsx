@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CustomLinkButton } from './CustomLinkButton'
 import { LinkManagerPanel } from './LinkManagerPanel'
 import { useLinkShortcuts } from '@renderer/hooks/useLinkShortcuts'
@@ -16,6 +17,7 @@ export const LinkFeatureIntegration: React.FC<LinkFeatureIntegrationProps> = ({
 }) => {
   const [showLinkManager, setShowLinkManager] = useState(false)
   const [showInsertDialog, setShowInsertDialog] = useState(false)
+  const { t } = useTranslation()
 
   const handleInsertLink = () => {
     setShowInsertDialog(true)
@@ -59,7 +61,7 @@ export const LinkFeatureIntegration: React.FC<LinkFeatureIntegrationProps> = ({
               ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
               : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
             }`}
-          title="管理链接 (Ctrl+Shift+K)"
+          title={`${t('link.manageLinks')} (Ctrl+Shift+K)`}
         >
           📋
         </button>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAtomValue } from 'jotai'
+import { useTranslation } from 'react-i18next'
 import { notesAtom } from '@renderer/store'
 import { SmartLinkDialog } from './SmartLinkDialog'
 import { useLinkManager } from '@renderer/hooks/useLinkManager'
@@ -11,6 +12,7 @@ interface CustomLinkButtonProps {
 
 export const CustomLinkButton: React.FC<CustomLinkButtonProps> = ({ editor, darkMode }) => {
   const [showDialog, setShowDialog] = useState(false)
+  const { t } = useTranslation()
   const notes = useAtomValue(notesAtom)
   const { getNoteLinks } = useLinkManager()
 
@@ -56,7 +58,7 @@ export const CustomLinkButton: React.FC<CustomLinkButtonProps> = ({ editor, dark
             ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
             : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
           }`}
-        title="插入链接"
+        title={t('link.insertLink')}
       >
         🔗
       </button>
@@ -66,10 +68,6 @@ export const CustomLinkButton: React.FC<CustomLinkButtonProps> = ({ editor, dark
           isOpen={showDialog}
           onClose={() => setShowDialog(false)}
           onInsert={handleInsertLink}
-          onQuickInsert={handleQuickInsert}
-          recentLinks={getRecentLinks()}
-          notes={notes}
-          darkMode={darkMode}
         />
       )}
     </>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useAtomValue } from 'jotai'
+import { useTranslation } from 'react-i18next'
 import { notesAtom } from '@renderer/store'
 
 interface SmartLinkDialogProps {
@@ -31,6 +32,7 @@ export const SmartLinkDialog: React.FC<SmartLinkDialogProps> = ({
   initialUrl = '',
   initialTitle = ''
 }) => {
+  const { t } = useTranslation()
   const notes = useAtomValue(notesAtom)
   const [url, setUrl] = useState(initialUrl)
   const [title, setTitle] = useState(initialTitle)
@@ -147,7 +149,7 @@ export const SmartLinkDialog: React.FC<SmartLinkDialogProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            插入链接
+            {t('link.insertLink')}
           </h3>
           <button
             onClick={handleClose}
@@ -163,13 +165,13 @@ export const SmartLinkDialog: React.FC<SmartLinkDialogProps> = ({
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-blue-800 dark:text-blue-200">
-                  检测到剪贴板URL
+                  {t('link.clipboardUrl')}
                 </span>
                 <button
                   onClick={useClipboardUrl}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  使用
+                  {t('link.useClipboardUrl')}
                 </button>
               </div>
             </div>
@@ -202,7 +204,7 @@ export const SmartLinkDialog: React.FC<SmartLinkDialogProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">选择笔记...</option>
-                {notes.map(note => (
+                {notes?.map(note => (
                   <option key={note.title} value={note.title}>
                     {note.title}
                   </option>

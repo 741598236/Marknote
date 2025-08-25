@@ -10,10 +10,12 @@ import {
   FloatingNoteTitle,
   MinimizeButton,
   MaximizeButton,
-  CloseButton
+  CloseButton,
+  LanguageSwitcher
 } from '@/components'
 import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
+import { useTranslation } from 'react-i18next'
 
 type ExtendedCSSProperties = React.CSSProperties & {
   WebkitAppRegion?: 'drag' | 'no-drag'
@@ -21,6 +23,7 @@ type ExtendedCSSProperties = React.CSSProperties & {
 
 const App = (): ReactElement => {
   const [darkMode, setDarkMode] = useState(false)
+  const { t } = useTranslation()
 
   const contentContainerRef = useRef<HTMLDivElement>(null)
 
@@ -40,9 +43,9 @@ const App = (): ReactElement => {
 
         {/* 优化后的网格布局 */}
         <div className="relative z-10 h-full grid grid-cols-[auto_minmax(0,1fr)_auto] items-center px-4 w-full">
-          {/* 左侧控件 - 昼夜切换按钮 */}
+          {/* 左侧控件 - 昼夜切换和语言切换 */}
           <div
-            className="flex justify-start min-w-[150px]"
+            className="flex justify-start min-w-[150px] gap-3"
             style={{ WebkitAppRegion: 'no-drag' } as ExtendedCSSProperties}
           >
             <label className="relative inline-flex items-center cursor-pointer">
@@ -64,6 +67,7 @@ const App = (): ReactElement => {
                 </div>
               </div>
             </label>
+            <LanguageSwitcher />
           </div>
 
           {/* 居中的标题 - 添加响应式处理 */}
@@ -77,7 +81,7 @@ const App = (): ReactElement => {
             className="flex justify-end min-w-[150px] h-full items-center gap-1 px-2"
             style={{ WebkitAppRegion: 'no-drag' } as ExtendedCSSProperties}
           >
-            {window.context.platform !== 'darwin' && (
+            {window.context?.platform !== 'darwin' && (
               <>
                 <MinimizeButton />
                 <MaximizeButton />

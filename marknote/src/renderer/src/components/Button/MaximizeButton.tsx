@@ -10,7 +10,7 @@ export const MaximizeButton = ({ ...props }: ActionButtonProps) => {
 
     const updateFullscreenState = async () => {
       try {
-        const fullscreen = await window.context.ipcRenderer.invoke('window:isFullscreen')
+        const fullscreen = await window.context?.ipcRenderer?.invoke('window:isFullscreen') || false
         if (isMounted) setIsFullscreen(fullscreen)
       } catch (error) {
         console.error('Failed to get window fullscreen state:', error)
@@ -25,14 +25,14 @@ export const MaximizeButton = ({ ...props }: ActionButtonProps) => {
     const onEnterFullscreen = () => isMounted && setIsFullscreen(true)
     const onLeaveFullscreen = () => isMounted && setIsFullscreen(false)
 
-    window.context.ipcRenderer.on('window:enter-fullscreen', onEnterFullscreen)
-    window.context.ipcRenderer.on('window:leave-fullscreen', onLeaveFullscreen)
+    window.context?.ipcRenderer?.on('window:enter-fullscreen', onEnterFullscreen)
+    window.context?.ipcRenderer?.on('window:leave-fullscreen', onLeaveFullscreen)
 
     return () => {
       isMounted = false
       // removeAllListeners 方法只需要事件名作为参数，移除该事件的所有监听器
-      window.context.ipcRenderer.removeAllListeners('window:enter-fullscreen')
-      window.context.ipcRenderer.removeAllListeners('window:leave-fullscreen')
+      window.context?.ipcRenderer?.removeAllListeners('window:enter-fullscreen')
+      window.context?.ipcRenderer?.removeAllListeners('window:leave-fullscreen')
     }
   }, [])
 
@@ -40,7 +40,7 @@ export const MaximizeButton = ({ ...props }: ActionButtonProps) => {
 
   const handleToggleFullscreen = () => {
     setIsMaximizing(true)
-    window.context.ipcRenderer.send('window:toggle-fullscreen')
+    window.context?.ipcRenderer?.send('window:toggle-fullscreen')
 
     // 延迟200ms更新图标避免闪烁
     setTimeout(() => {

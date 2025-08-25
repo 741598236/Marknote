@@ -4,7 +4,7 @@ import { LuMinus } from 'react-icons/lu'
 
 export const MinimizeButton = ({ ...props }: ActionButtonProps) => {
   const handleMinimize = () => {
-    window.context.ipcRenderer.send('window:minimize')
+    window.context?.ipcRenderer?.send('window:minimize')
   }
 
   return (

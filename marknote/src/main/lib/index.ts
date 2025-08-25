@@ -14,7 +14,7 @@ export const getRootDir = async (): Promise<string> => {
   if (import.meta.env.PROD) {
     if (!userSelectedPath) {
       const { canceled, filePaths } = await dialog.showOpenDialog({
-        title: '选择存储目录',
+        title: 'Select Storage Directory',
         defaultPath: defaultPath,
         properties: ['openDirectory', 'createDirectory']
       })
@@ -83,9 +83,9 @@ export const createNote: CreateNote = async (title?: string) => {
   }
 
   const { filePath, canceled } = await dialog.showSaveDialog({
-    title: '创建新笔记',
+    title: 'Create New Note',
     defaultPath: `${rootDir}/Untitled.md`,
-    buttonLabel: `新建`,
+    buttonLabel: 'New',
     properties: ['showOverwriteConfirmation'],
     showsTagField: false,
     filters: [{ name: 'Markdown', extensions: ['md'] }]
@@ -100,8 +100,8 @@ export const createNote: CreateNote = async (title?: string) => {
   if (parentDir !== rootDir) {
     await dialog.showMessageBox({
       type: 'error',
-      title: '创建失败',
-      message: `所有笔记文件将保存在：${rootDir}`
+      title: 'Create Failed',
+      message: `All notes will be saved in: ${rootDir}`
     })
 
     return false
@@ -128,9 +128,9 @@ export const deleteNote: DeleteNote = async (filename) => {
   const rootDir = await getRootDir()
   const { response } = await dialog.showMessageBox({
     type: 'warning',
-    title: '删除笔记',
-    message: `确定要删除${filename}吗？`,
-    buttons: ['删除', '取消'], //0是删除，1是取消
+    title: 'Delete Note',
+    message: `Are you sure you want to delete ${filename}?`,
+    buttons: ['Delete', 'Cancel'], //0是删除，1是取消
     defaultId: 1,
     cancelId: 1
   })

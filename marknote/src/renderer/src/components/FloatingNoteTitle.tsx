@@ -8,8 +8,10 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { ComponentProps } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const FloatingNoteTitle = ({ className, ...props }: ComponentProps<'div'>) => {
+  const { t } = useTranslation()
   const selectedNote = useAtomValue(selectedNoteAtom)
   const [isEditing, setIsEditing] = useState(false)
   const [newTitle, setNewTitle] = useState('')
@@ -57,7 +59,7 @@ export const FloatingNoteTitle = ({ className, ...props }: ComponentProps<'div'>
         />
       ) : (
         <h1 className="text-2xl font-extrabold tracking-tight truncate max-w-[80vw] px-2">
-          {selectedNote ? selectedNote.title : '双击此处创建新笔记'}
+          {selectedNote ? selectedNote.title : t('notes.doubleClickToCreate')}
         </h1>
       )}
     </div>

@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useAtomValue } from 'jotai'
+import { useTranslation } from 'react-i18next'
 import { notesAtom } from '@renderer/store'
 import { useLinkManager } from '@renderer/hooks/useLinkManager'
-import { LinkPreview } from './LinkPreview'
+
 
 interface LinkManagerPanelProps {
   noteTitle: string
@@ -15,6 +16,7 @@ export const LinkManagerPanel: React.FC<LinkManagerPanelProps> = ({
   darkMode,
   onClose
 }) => {
+  const { t } = useTranslation()
   const notes = useAtomValue(notesAtom)
   const {
     getNoteLinks,
@@ -30,7 +32,7 @@ export const LinkManagerPanel: React.FC<LinkManagerPanelProps> = ({
 
   const currentNoteLinks = getNoteLinks(noteTitle)
   const allLinksStats = getAllLinksStats()
-  const brokenLinks = validateInternalLinks()
+  const brokenLinks = validateInternalLinks() || []
 
   const getFilteredLinks = () => {
     switch (activeTab) {
@@ -87,7 +89,7 @@ export const LinkManagerPanel: React.FC<LinkManagerPanelProps> = ({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            当前笔记 ({currentNoteLinks.length})
+            {t('notes.currentNote')} ({currentNoteLinks.length})
           </button>
           <button
             onClick={() => setActiveTab('all')}
@@ -97,7 +99,7 @@ export const LinkManagerPanel: React.FC<LinkManagerPanelProps> = ({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            所有链接 ({allLinksStats.totalLinks})
+            {t('notes.allNotes')} ({allLinksStats.totalLinks})
           </button>
           <button
             onClick={() => setActiveTab('broken')}
@@ -107,14 +109,14 @@ export const LinkManagerPanel: React.FC<LinkManagerPanelProps> = ({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            失效链接 ({brokenLinks.length})
+            {t('link.brokenLinks')} ({brokenLinks.length})
           </button>
         </div>
 
         <div className="p-4">
           <input
             type="text"
-            placeholder="搜索链接..."
+            placeholder={t('link.searchLinks')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`w-full px-3 py-2 border rounded-md ${

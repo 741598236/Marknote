@@ -46,140 +46,11 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { solarizedLight } from '@ddietr/codemirror-themes/solarized-light'
 import React, { useCallback, useEffect } from 'react'
 
-const SUPPORTED_LANGUAGES = {
-  text: 'Plain Text',
-  javascript: 'JavaScript',
-  js: 'JavaScript',
-  css: 'CSS',
-  html: 'HTML',
-  python: 'Python',
-  php: 'PHP',
-  rust: 'Rust',
-  c: 'C',
-  cpp: 'C++',
-  sql: 'SQL',
-  bash: 'Bash',
-  json: 'JSON',
-  yaml: 'YAML',
-  markdown: 'Markdown'
-}
-
-// 中文翻译函数
-const chineseTranslation = (key: string, defaultValue: string, params?: Record<string, string>): string => {
-  const translations: Record<string, string> = {
-    // 工具栏按钮提示
-    'toolbar.undo': '撤销',
-    'toolbar.redo': '重做',
-    'toolbar.bold': '粗体',
-    'toolbar.italic': '斜体',
-    'toolbar.underline': '下划线',
-    'toolbar.strikethrough': '删除线',
-    'toolbar.heading': '标题',
-    'toolbar.bulletedList': '无序列表',
-    'toolbar.numberedList': '有序列表',
-    'toolbar.checkList': '任务列表',
-    'toolbar.quote': '引用',
-    'toolbar.link': '链接',
-    'toolbar.image': '图片',
-    'toolbar.table': '表格',
-    'toolbar.thematicBreak': '分割线',
-    'toolbar.codeBlock': '代码块',
-    'toolbar.inlineCode': '行内代码',
-    'toolbar.removeInlineCode': '移除代码格式',
-    'toolbar.blockTypeSelect.selectBlockTypeTooltip': '选择块类型',
-    'toolbar.blockTypeSelect.placeholder': '块类型',
-    'toolbar.blockTypes.paragraph': '段落',
-    'toolbar.blockTypes.quote': '引用',
-    'toolbar.blockTypes.heading': '标题 {{level}}',
-    'toolbar.diffMode': '差异模式',
-    'toolbar.source': '源码模式',
-    
-    // 链接对话框
-    'createLink.dialogTitle': '创建链接',
-    'createLink.url': '链接地址',
-    'createLink.urlPlaceholder': '选择或粘贴URL',
-    'createLink.title': '标题',
-    'createLink.save': '保存',
-    'createLink.cancel': '取消',
-    'createLink.openInNewTab': '在新标签页中打开',
-    'createLink.saveTooltip': '设置链接',
-    'createLink.cancelTooltip': '取消更改',
-    'dialogControls.save': '保存',
-    'dialogControls.cancel': '取消',
-    'frontmatterEditor.title': '编辑文档前置信息',
-    
-    // 链接预览
-    'linkPreview.open': '在新窗口打开 {{url}}',
-    'linkPreview.edit': '编辑链接URL',
-    'linkPreview.copyToClipboard': '复制到剪贴板',
-    'linkPreview.copied': '已复制！',
-    'linkPreview.remove': '移除链接',
-    
-    // 表格相关
-    'table.insertTable': '插入表格',
-    'table.deleteTable': '删除表格',
-    'table.columnMenu': '列菜单',
-    'table.rowMenu': '行菜单',
-    'table.textAlignment': '文本对齐',
-    'table.alignLeft': '左对齐',
-    'table.alignCenter': '居中对齐',
-    'table.alignRight': '右对齐',
-    'table.insertColumnLeft': '在左侧插入列',
-    'table.insertColumnRight': '在右侧插入列',
-    'table.deleteColumn': '删除列',
-    'table.insertRowAbove': '在上方插入行',
-    'table.insertRowBelow': '在下方插入行',
-    'table.deleteRow': '删除行',
-    'table.toggleHeaderCell': '切换标题单元格',
-    'table.toggleHeaderRow': '切换标题行',
-    'table.toggleHeaderColumn': '切换标题列',
-    'table.createTable': '创建表格',
-    'table.addColumn': '添加列',
-    'table.addRow': '添加行',
-    'table.insertColumn': '插入列',
-    'table.insertRow': '插入行',
-    
-    // 代码块相关
-    'codeBlock.language': '代码块语言',
-    'codeBlock.selectLanguage': '选择代码块语言',
-    'codeBlock.inlineLanguage': '语言',
-    'codeblock.delete': '删除代码块',
-    'toolbar.deleteSandpack': '删除此代码块',
-    'codeBlock.copyCode': '复制代码',
-    'codeBlock.copied': '已复制！',
-    
-    // 图片相关
-    'image.url': '图片URL',
-    'image.title': '图片标题',
-    'image.altText': '替代文本',
-    'image.insertImage': '插入图片',
-    'uploadImage.dialogTitle': '上传图片',
-    'uploadImage.title': '标题：',
-    
-    // 通用
-    'common.loading': '加载中...',
-    'common.error': '错误',
-    'common.save': '保存',
-    'common.cancel': '取消',
-    'common.delete': '删除',
-    'common.edit': '编辑',
-    'common.copy': '复制'
-  }
-  
-  // 查找翻译，如果没有找到则使用默认值
-  let translatedText = translations[key] || defaultValue
-  
-  // 如果有参数，进行替换
-  if (params) {
-    Object.entries(params).forEach(([paramKey, paramValue]) => {
-      translatedText = translatedText.replace(new RegExp(`{{${paramKey}}}`, 'g'), paramValue)
-    })
-  }
-  
-  return translatedText
-}
+import { SUPPORTED_LANGUAGES } from '../config/editor.config'
+import { useTranslation } from 'react-i18next'
 
 export const MarkdownEditor = ({ darkMode }: { darkMode: boolean }): React.ReactElement => {
+  const { t } = useTranslation()
   const { editorRef, selectedNote, handleAutoSaving, handleBlur } = useMarkdownEditor()
 
   // 使用 useMemo 优化插件创建，依赖 darkMode
@@ -195,8 +66,7 @@ export const MarkdownEditor = ({ darkMode }: { darkMode: boolean }): React.React
       tablePlugin(),
       thematicBreakPlugin(),
       codeBlockPlugin({
-        defaultCodeBlockLanguage: 'text',
-        codeBlockEditorDescriptors: []
+        defaultCodeBlockLanguage: 'plaintext'
       }),
       codeMirrorPlugin({
         codeBlockLanguages: SUPPORTED_LANGUAGES,
@@ -249,7 +119,7 @@ export const MarkdownEditor = ({ darkMode }: { darkMode: boolean }): React.React
   if (!selectedNote) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">请选择或创建一个笔记</p>
+        <p className="text-gray-500">{t('notes.selectOrCreateNote')}</p>
       </div>
     )
   }
@@ -263,7 +133,6 @@ export const MarkdownEditor = ({ darkMode }: { darkMode: boolean }): React.React
         onChange={handleAutoSaving}
         onBlur={handleBlur}
         plugins={plugins}
-        translation={chineseTranslation}
         contentEditableClassName="
           outline-none max-w-none 
           px-4 py-4 sm:px-6 md:px-8

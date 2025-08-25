@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAtomValue } from 'jotai'
+import { useTranslation } from 'react-i18next'
 import { notesAtom } from '@renderer/store'
 
 interface LinkPreviewProps {
@@ -15,6 +16,7 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
   onEdit,
   onRemove
 }) => {
+  const { t } = useTranslation()
   const notes = useAtomValue(notesAtom)
   const [isHovered, setIsHovered] = useState(false)
   const [isInternal, setIsInternal] = useState(false)
@@ -24,7 +26,7 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
     if (url.startsWith('#')) {
       setIsInternal(true)
       const noteTitle = url.substring(1)
-      const note = notes.find(n => n.title === noteTitle)
+      const note = notes?.find(n => n.title === noteTitle)
       setTargetNote(note)
     }
   }, [url, notes])
@@ -57,14 +59,14 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({
           <button
             onClick={onEdit}
             className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            title="编辑链接"
+            title={t('link.editLink')}
           >
             ✏️
           </button>
           <button
             onClick={onRemove}
             className="text-xs text-red-500 hover:text-red-700"
-            title="删除链接"
+            title={t('link.deleteLink')}
           >
             ✕
           </button>
