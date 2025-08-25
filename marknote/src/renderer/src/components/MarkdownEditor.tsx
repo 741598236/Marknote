@@ -28,6 +28,7 @@ import {
   InsertImage,
   UndoRedo
 } from '@mdxeditor/editor'
+import { SmartLinkDialog } from './SmartLinkDialog'
 import '@mdxeditor/editor/style.css'
 import { useMarkdownEditor } from '@renderer/hooks/useMarkdownEditor'
 import { javascript } from '@codemirror/lang-javascript'
