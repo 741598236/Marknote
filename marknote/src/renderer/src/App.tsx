@@ -6,7 +6,7 @@ import {
   Sidebar,
   TopBar,
   NotePreviewList,
-  MarkdownEditor,
+  BlockDraggableEditor,
   FloatingNoteTitle,
   MinimizeButton,
   MaximizeButton,
@@ -100,7 +100,7 @@ const App = (): ReactElement => {
         </Sidebar>
 
         <Content ref={contentContainerRef} className="p-6">
-          <MarkdownEditor darkMode={darkMode} />
+          <BlockDraggableEditor darkMode={darkMode} />
         </Content>
       </MainContent>
     </RootLayout>

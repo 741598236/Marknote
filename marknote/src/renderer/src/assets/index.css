@@ -286,4 +286,67 @@
     transform: translate(-50%, -50%) !important;
     margin: 0 !important;
   }
+
+  /* 拖拽模式样式 */
+  .drag-mode-active .prose > * {
+    position: relative;
+    cursor: move;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    margin: 1rem 0;
+    padding: 0.5rem 0 0.5rem 1rem;
+  }
+  
+  .drag-mode-active .prose > *:hover {
+    border-left-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+  
+  .drag-mode-active .prose > *.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+  }
+  
+  .drag-mode-active .prose > *.drag-over {
+    border-left-color: #1d4ed8;
+    border-left-width: 4px;
+    background-color: rgba(29, 78, 216, 0.15);
+  }
+  
+  .drag-mode-active .prose > *::before {
+    content: "⋮⋮";
+    position: absolute;
+    left: -1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 0.875rem;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  .drag-mode-active .prose > *:hover::before {
+    opacity: 1;
+    color: #3b82f6;
+  }
+  
+  .drag-mode-active .prose > *.dragging::before {
+    cursor: grabbing;
+    opacity: 1;
+  }
+
+  /* 拖拽模式下的代码块特殊处理 */
+  .drag-mode-active .prose pre {
+    cursor: move;
+  }
+  
+  .drag-mode-active .prose pre::before {
+    left: -2rem;
+  }
+
+  /* 拖拽模式下的表格特殊处理 */
+  .drag-mode-active .prose table {
+    cursor: move;
+  }
 }
